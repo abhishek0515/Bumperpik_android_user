@@ -1,4 +1,4 @@
-package com.bumperpick.bumperickapp
+package com.bumperpick.bumperickUser
 
 import org.junit.Test
 

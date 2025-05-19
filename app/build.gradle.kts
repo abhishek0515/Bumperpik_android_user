@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.bumperpick.bumperickapp"
-    compileSdk = 34
+    namespace = "com.bumperpick.bumperickUser"
+    compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.bumperpick.bumperickapp"
+        applicationId = "com.bumperpick.bumperickUser"
         minSdk = 28
         targetSdk = 34
         versionCode = 1
@@ -40,7 +40,19 @@ android {
 }
 
 dependencies {
+    implementation("io.insert-koin:koin-android:3.5.3")
+    implementation("io.insert-koin:koin-androidx-compose:3.5.3")
 
+// DataStore for SharedPreferences
+    implementation("androidx.datastore:datastore-preferences:1.1.6")
+
+// ViewModel
+    implementation("io.coil-kt:coil-compose:2.5.0")
+
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.2.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    implementation("androidx.navigation:navigation-compose:2.7.3")
+    implementation (libs.koin.androidx.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

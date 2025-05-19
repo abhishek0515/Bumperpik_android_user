@@ -1,4 +1,4 @@
-package com.bumperpick.bumperickapp
+package com.bumperpick.bumperickUser
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
