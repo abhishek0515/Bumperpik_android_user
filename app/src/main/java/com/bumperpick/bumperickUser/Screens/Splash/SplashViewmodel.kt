@@ -23,7 +23,7 @@ class SplashViewmodel (val authRepository: AuthRepository):ViewModel(){
     }
     private fun checkAlreadyLoggedIn() {
         viewModelScope.launch {
-            delay(5000)
+            delay(5)
             when (val result = authRepository.checkAlreadyLogin()) {
                 is Result.Success -> {
                     _loginCheckState.value = SplashState.Success(if (result.data) Screen.HomePage else Screen.StartScreen)
