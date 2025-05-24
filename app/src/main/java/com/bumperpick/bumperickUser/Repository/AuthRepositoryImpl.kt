@@ -1,13 +1,17 @@
 package com.bumperpick.bumperickUser.Repository
 
 import DataStoreManager
+import android.util.Log
+import com.bumperpick.bumperpickvendor.API.Provider.ApiResult
+import com.bumperpick.bumperpickvendor.API.Provider.ApiService
+import com.bumperpick.bumperpickvendor.API.Provider.safeApiCall
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
 import java.util.UUID
 
 class AuthRepositoryImpl(
-    private val dataStoreManager: DataStoreManager
+    private val dataStoreManager: DataStoreManager,val apiService: ApiService
 ) : AuthRepository {
 
     override suspend fun checkAlreadyLogin(): Result<Boolean> {
@@ -25,6 +29,9 @@ class AuthRepositoryImpl(
         return try {
             // Simulate API call or auth logic
             delay(1000)
+            
+            
+            
             val generatedUserId = UUID.randomUUID().toString()
             dataStoreManager.saveUserId(generatedUserId)
             Result.Success(generatedUserId)
@@ -35,8 +42,20 @@ class AuthRepositoryImpl(
 
     override suspend fun sendOtp(mobileNumber: String): Result<String> {
         return try {
-            delay(500) // Simulate OTP send
-            Result.Success("Otp Send Successfully")
+            val sendOtpResponse = safeApiCall {  apiService.cust_send_otp(mobileNumber.replace(" ",""))}
+            Log.d("Phone Number",mobileNumber)
+            when(sendOtpResponse) {
+
+                is ApiResult.Success -> {
+                    if(sendOtpResponse.data.code==200)Result.Success(sendOtpResponse.data.message)
+                    else Result.Error(sendOtpResponse.data.message)
+                }
+
+                is ApiResult.Error -> {
+                    Result.Error(sendOtpResponse.message)
+                }
+            }
+
         } catch (e: Exception) {
             Result.Error("Failed to send OTP", e)
         }
@@ -44,17 +63,16 @@ class AuthRepositoryImpl(
 
     override suspend fun verifyOtp(mobileNumber: String,otp: String): Result<Boolean> {
         return try {
-            delay(500)
-            println(otp)
-            if(otp.equals("1234")){
-                val generatedUserId = UUID.randomUUID().toString()
-                dataStoreManager.saveUserId(generatedUserId)
-                Result.Success(otp .equals("1234")) // Fake OTP check
-            }
-            else{
-                Result.Success(false)
-            }
+            val verify_Otp= safeApiCall { apiService.cust_verify_otp(mobileNumber.replace(" ",""),otp) }
+            when(verify_Otp) {
+                is ApiResult.Success->{
+                    if(verify_Otp.data.code==200) Result.Success(true)
+                    else Result.Error(verify_Otp.data.message)
 
+
+                }
+                is ApiResult.Error-> Result.Error(verify_Otp.message)
+            }
         } catch (e: Exception) {
             Result.Error("OTP verification failed", e)
         }

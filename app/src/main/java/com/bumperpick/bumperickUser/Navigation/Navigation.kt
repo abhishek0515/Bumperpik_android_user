@@ -38,9 +38,11 @@ fun AppNavigation() {
 
         // Login
         composable(Screen.Login.route) {
-            Login(onLoginSuccess = { mobile ->
-                // ✅ FIXED: Don't pop Login off the stack so back works
-                navController.navigate(Screen.Otp.withMobile(mobile))
+            Login(onLoginSuccess = { mobile ,isMobile->
+                if(isMobile)navController.navigate(Screen.Otp.withMobile(mobile))
+                else navController.navigate(Screen.HomePage.route)
+
+
             })
         }
 

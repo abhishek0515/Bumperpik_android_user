@@ -1,5 +1,7 @@
 package com.bumperpick.bumperickUser.Screens.Login
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,18 +56,25 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun Login(
     viewModel: LoginViewmodel = koinViewModel(),
-    onLoginSuccess: (mobile:String) -> Unit
+    googleSignInViewModel: GoogleSignInViewModel = koinViewModel(),
+    onLoginSuccess: (mobile:String,isMobile:Boolean) -> Unit
 ) {
     // Collect UI state from the ViewModel
     val uiState by viewModel.uiState.collectAsState()
     // Material 3 Snackbar host state
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+    val google_uiState by googleSignInViewModel.uiState.collectAsState()
+
+    // Launcher for Google Sign-In intent
+    val signInLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        googleSignInViewModel.processSignInResult(result.data)
+    }
 
     // Monitor OTP sent state for navigation
     LaunchedEffect(uiState.isOtpSent) {
         if (uiState.isOtpSent) {
-            onLoginSuccess(viewModel.uiState.value.phoneNumber)
+            onLoginSuccess(viewModel.uiState.value.phoneNumber,true)
             viewModel.updateState()
         }
 
@@ -86,6 +95,29 @@ fun Login(
         }
     }
 
+    LaunchedEffect (google_uiState.userData){
+        if (google_uiState.userData != null) {
+
+
+
+
+            onLoginSuccess(google_uiState.userData!!.email.toString(),false)
+
+        }
+    }
+    // Show error Snackbar for Google Sign-In
+    LaunchedEffect(google_uiState.error) {
+        if (google_uiState.error.isNotEmpty()) {
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar(
+                    message = google_uiState.error,
+                    actionLabel = "Dismiss",
+                    duration = SnackbarDuration.Short
+                )
+                googleSignInViewModel.clearError()
+            }
+        }
+    }
 
     Scaffold( snackbarHost = {
         SnackbarHost(hostState = snackbarHostState,  modifier = Modifier.padding( 16.dp),  snackbar = { data ->
@@ -196,7 +228,8 @@ fun Login(
 
             // Google Sign-In button
             Google_SigInButton(modifier = Modifier.padding(horizontal = 20.dp)) {
-                viewModel.signInWithGoogle()
+                val signInIntent = googleSignInViewModel.getSignInIntent()
+                signInLauncher.launch(signInIntent)
             }
 
             Spacer(modifier = Modifier.weight(1f))

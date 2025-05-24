@@ -42,10 +42,22 @@ android {
 dependencies {
     implementation("io.insert-koin:koin-android:3.5.3")
     implementation("io.insert-koin:koin-androidx-compose:3.5.3")
+    implementation ("com.auth0:java-jwt:4.4.0")
 
+    implementation ("androidx.credentials:credentials:1.2.2")
+    implementation ("androidx.credentials:credentials-play-services-auth:1.2.2")
+    implementation( "com.google.android.libraries.identity.googleid:googleid:1.1.0")
+    implementation ("com.google.android.gms:play-services-auth:20.7.0")
+
+    // Credential Manager dependencies
+    implementation("androidx.credentials:credentials:1.3.0")
+
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 // DataStore for SharedPreferences
     implementation("androidx.datastore:datastore-preferences:1.1.6")
-
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 // ViewModel
     implementation("io.coil-kt:coil-compose:2.5.0")
 
