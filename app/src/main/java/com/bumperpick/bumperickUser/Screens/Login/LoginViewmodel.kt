@@ -125,27 +125,7 @@ class LoginViewmodel(val authRepository: AuthRepository):ViewModel() {
         }
     }
 
-    /**
-     * Initiates Google sign-in process
-     */
-    fun signInWithGoogle() {
-        viewModelScope.launch {
-            try {
-                _uiState.update { it.copy(isLoading = true, error = "") }
 
-                // Implement Google Sign-in logic
-                // val result = authRepository.signInWithGoogle()
-
-                // Temporary placeholder
-                _uiState.update { it.copy(isLoading = false) }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(
-                    error = e.message ?: "Google sign-in failed",
-                    isLoading = false
-                )}
-            }
-        }
-    }
 
     /**
      * Clears any displayed error message

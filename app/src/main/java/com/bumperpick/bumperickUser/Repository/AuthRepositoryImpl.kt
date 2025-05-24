@@ -61,6 +61,27 @@ class AuthRepositoryImpl(
         }
     }
 
+    override suspend fun resendOtp(mobileNumber: String): Result<String> {
+        return try {
+            val sendOtpResponse = safeApiCall {  apiService.cust_re_send_otp(mobileNumber.replace(" ",""))}
+            Log.d("Phone Number",mobileNumber)
+            when(sendOtpResponse) {
+
+                is ApiResult.Success -> {
+                    if(sendOtpResponse.data.code==200)Result.Success(sendOtpResponse.data.message)
+                    else Result.Error(sendOtpResponse.data.message)
+                }
+
+                is ApiResult.Error -> {
+                    Result.Error(sendOtpResponse.message)
+                }
+            }
+
+        } catch (e: Exception) {
+            Result.Error("Failed to send OTP", e)
+        }
+    }
+
     override suspend fun verifyOtp(mobileNumber: String,otp: String): Result<Boolean> {
         return try {
             val verify_Otp= safeApiCall { apiService.cust_verify_otp(mobileNumber.replace(" ",""),otp) }

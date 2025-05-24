@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -66,10 +67,12 @@ fun OtpScreen(
         onBackClick()
     }
     // Countdown timer logic
-    LaunchedEffect(Unit) {
-        while (secondsLeft > 0) {
-            delay(1000)
-            secondsLeft--
+    LaunchedEffect(isResendEnabled) {
+        if(!isResendEnabled) {
+            while (secondsLeft > 0) {
+                delay(1000)
+                secondsLeft--
+            }
         }
         isResendEnabled = true
     }
@@ -178,7 +181,8 @@ fun OtpScreen(
                     onValueChange = { OtpViewModel.onOtpChanged(it) },
                     otpCompleted = {
                         OtpViewModel.verifyOtp(mobile)
-                    }
+                    },
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
             }
 

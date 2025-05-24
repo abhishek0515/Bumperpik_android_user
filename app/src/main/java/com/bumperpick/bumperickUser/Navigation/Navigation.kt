@@ -22,7 +22,8 @@ fun AppNavigation() {
         composable(Screen.Splash.route) {
             Splash(gotoScreen = {
                 navController.navigate(it.route) {
-
+                    popUpTo(Screen.Splash.route) { inclusive = true }
+                    launchSingleTop = true
                 }
             })
         }
@@ -31,18 +32,24 @@ fun AppNavigation() {
         composable(Screen.StartScreen.route) {
             StartScreen(gotoLogin = {
                 navController.navigate(Screen.Login.route) {
-
+                    launchSingleTop = true
                 }
             })
         }
 
         // Login
         composable(Screen.Login.route) {
-            Login(onLoginSuccess = { mobile ,isMobile->
-                if(isMobile)navController.navigate(Screen.Otp.withMobile(mobile))
-                else navController.navigate(Screen.HomePage.route)
-
-
+            Login(onLoginSuccess = { mobile, isMobile ->
+                if (isMobile) {
+                    navController.navigate(Screen.Otp.withMobile(mobile)) {
+                        launchSingleTop = true
+                    }
+                } else {
+                    navController.navigate(Screen.HomePage.route) {
+                        popUpTo(Screen.StartScreen.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
             })
         }
 
@@ -58,17 +65,19 @@ fun AppNavigation() {
             OtpScreen(
                 mobile = mobile,
                 onBackClick = {
-                    navController.popBackStack() // ✅ Will now correctly go back to Login
+                    navController.popBackStack()
                 },
                 onOtpVerify = {
-                   navController.navigate(Screen.HomePage.route)
+                    navController.navigate(Screen.HomePage.route) {
+                        popUpTo(Screen.StartScreen.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             )
         }
 
-
-
-        composable(route=Screen.HomePage.route){
+        // HomePage
+        composable(route = Screen.HomePage.route) {
             Homepage()
         }
     }

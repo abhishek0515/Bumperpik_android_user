@@ -182,24 +182,6 @@ fun Login(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Loading indicator or Button - connected to state
-            if (uiState.isLoading) {
-                CircularProgressIndicator(
-                    color = BtnColor,
-                    strokeWidth = 2.dp,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-            } else {
-                ButtonView(
-                    "Get OTP",
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    horizontal_padding = 20.dp
-                ) {
-                    viewModel.sendOtp()
-                }
-            }
-
             // Terms and Conditions Checkbox - connected to state
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -223,6 +205,25 @@ fun Login(
                     modifier = Modifier.padding(start = 4.dp)
                 )
             }
+            Spacer(modifier=Modifier.height(10.dp))
+            // Loading indicator or Button - connected to state
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    color = BtnColor,
+                    strokeWidth = 2.dp,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+            } else {
+                ButtonView(
+                    "Get OTP",
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    horizontal_padding = 20.dp
+                ) {
+                    viewModel.sendOtp()
+                }
+            }
+
+
 
             Spacer(modifier = Modifier.height(16.dp))
 

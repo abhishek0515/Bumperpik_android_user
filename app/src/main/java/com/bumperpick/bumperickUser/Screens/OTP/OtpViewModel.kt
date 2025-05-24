@@ -41,11 +41,26 @@ class OtpViewModel(val authRepository: AuthRepository):ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null, message = null) }
 
-            val otpVerify=authRepository.verifyOtp(mobileNumber = mobile,otp=_uiState.value.otp)
-            when(otpVerify){
-                is Result.Error -> _uiState.update { it.copy(isLoading = false, error = otpVerify.message) }
-                Result.Loading -> _uiState.update { it.copy(isLoading = true) }
-                is Result.Success -> _uiState.update { it.copy(isLoading = false, message = if(otpVerify.data) "OTP Verified Successfully" else "Invalid OTP",success = otpVerify.data) }
+            val otpVerify=authRepository.resendOtp(mobileNumber = mobile)
+            when (otpVerify) {
+                is Result.Success -> {
+                    _uiState.update { it.copy(
+
+                        message = otpVerify.data,
+                        isLoading = false
+                    )}
+                }
+                is Result.Error -> {
+                    _uiState.update { it.copy(
+                        error = otpVerify.message,
+                        isLoading = false
+                    )}
+                }
+
+                Result.Loading -> {
+                    _uiState.update { it.copy(isLoading = true, error = "", ) }
+
+                }
             }
         }
     }
