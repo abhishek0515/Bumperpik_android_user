@@ -1,33 +1,49 @@
 package com.bumperpick.bumperickUser.Screens.Component
 
+import android.graphics.Bitmap
+import android.util.Log
+import android.widget.Toast
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.text.BasicTextField
-
-import androidx.compose.ui.draw.drawWithContent
-
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.addOutline
-import androidx.compose.ui.graphics.drawscope.Stroke
-
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
@@ -42,23 +58,51 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.bumperpick.bumperickUser.R
 import com.bumperpick.bumperickUser.ui.theme.BtnColor
-import com.bumperpick.bumperickUser.ui.theme.satoshi
 import com.bumperpick.bumperickUser.ui.theme.satoshi_regular
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntSize
+import com.bumperpick.bumperickUser.API.New_model.DataXX
+import com.bumperpick.bumperickUser.API.New_model.Offer
+import com.bumperpick.bumperickUser.Misc.LocationHelper
+import com.bumperpick.bumperickUser.Screens.Home.HomePageViewmodel
+import com.bumperpick.bumperickUser.Screens.Home.UiState
 import com.bumperpick.bumperickUser.ui.theme.grey
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.MultiFormatWriter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun TextFieldView(
@@ -99,22 +143,22 @@ fun TextFieldView(
 }
 
 @Composable
-fun ButtonView(text:String,modifier: Modifier=Modifier,horizontal_padding:Dp=16.dp,onClick:()->Unit) {
+fun ButtonView(text:String, modifier: Modifier=Modifier, textColor: Color=Color.White, color: Color=BtnColor, horizontal_padding:Dp=16.dp, onClick:()->Unit) {
     Button(
         onClick = { onClick() },
         modifier = modifier
 
             .fillMaxWidth()
             .height(75.dp)
-            .padding( bottom = 20.dp, start =  horizontal_padding, end = horizontal_padding),
+            .padding(bottom = 20.dp, start = horizontal_padding, end = horizontal_padding),
 
         colors = ButtonDefaults.buttonColors(
-            containerColor = BtnColor
+            containerColor = color
         ),
         shape = RoundedCornerShape(16.dp)
 
     ) {
-        Text(text, color = Color.White, fontFamily = satoshi_regular, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+        Text(text, color = textColor, fontFamily = satoshi_regular, fontWeight = FontWeight.Bold, fontSize = 18.sp)
     }
 }
 
@@ -236,8 +280,927 @@ fun OtpView(
     }
 }
 
+data class NavigationItem(
+    val label: String,
+    val icon: ImageVector? = null,
+    val painter: Painter? = null,
+    val contentDescription: String,
+)
+@Composable
+fun BottomNavigationBar(
+    items: List<NavigationItem>,
+    selectedTab: Int,
+    onTabSelected: (Int) -> Unit
+) {
+    NavigationBar(
+        containerColor = Color.White,
+        modifier = Modifier.shadow(0.dp)
+    ) {
+        items.forEachIndexed { index, item ->
+
+            NavigationBarItem(
+                selected = selectedTab == index,
+                onClick = { onTabSelected(index) },
+                icon = {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+
+                        // Icon itself
+                        item.icon?.let {
+                            Icon(
+                                imageVector = it,
+                                contentDescription = item.contentDescription,
+                                tint = if (selectedTab == index) Color(0xFF3B82F6) else Color.Gray
+                            )
+                        }
+                        item.painter?.let {
+                            Icon(
+                                painter = it,
+                                contentDescription = item.contentDescription,
+                                tint = if (selectedTab == index) Color(0xFF3B82F6) else Color.Gray
+                            )
+                        }
+                    }
+                },
+                label = {
+                    Text(
+                        text = item.label,
+                        color = if (selectedTab == index) Color(0xFF3B82F6) else Color.Gray,
+                        fontSize = 12.sp,
+                        fontWeight = if (selectedTab == index) FontWeight.Medium else FontWeight.Normal
+                    )
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    indicatorColor = Color.Transparent
+                ),
+                modifier = if (selectedTab == index) {
+                    Modifier.background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0xFF3B82F6).copy(alpha = 0.1f),
+                                Color.White
+                            )
+                        )
+                    )
+                } else Modifier
+            )
+        }
+    }
+}
+
+@Composable
+fun LocationCard(
+    modifier: Modifier = Modifier,
+    onNotificationClick: () -> Unit = {},
+    onCartClick: () -> Unit = {},
+    content: @Composable ColumnScope.() -> Unit = {} // Dynamic content support
+) {
+    val context= LocalContext.current
+    val locationHelper = LocationHelper(context)
+    var locationTitle by remember { mutableStateOf("Location") }
+    var locationSubtitle by remember { mutableStateOf("not available") }
+    LaunchedEffect(locationHelper) {
+        val location_pair=locationHelper.getCurrentAddress()
+        locationTitle=location_pair.first
+        locationSubtitle=location_pair.second
+    }
+    var size by remember { mutableStateOf(IntSize.Zero) }
+    val backgroundModifier = if (size.width > 0 && size.height > 0) {
+        val radius = maxOf(size.width, size.height) / 1.5f
+        Modifier.background(
+            brush = Brush.radialGradient(
+                colors = listOf(Color(0xFF8B1538), Color(0xFF5A0E26)),
+                center = Offset(size.width / 2f, size.height / 2f),
+                radius = radius
+            )
+        )
+    }
+    else {
+        Modifier.background(Color(0xFF8B1538)) }
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+
+            .onSizeChanged { size = it },
+        shape = RoundedCornerShape(
+            topStart = 0.dp,
+            topEnd = 0.dp,
+            bottomStart = 16.dp,
+            bottomEnd = 16.dp
+        ),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+
+        Column(modifier = Modifier.then(backgroundModifier)) {
+
+
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+
+                .padding(top = 40.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Left - Location
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Outlined.LocationOn,
+                            contentDescription = "Location",
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Column {
+                            Text(
+                                text = locationTitle,
+                                color = Color.White,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = 0.5.sp
+                            )
+                            Text(
+                                text = locationSubtitle,
+                                color = Color.White.copy(alpha = 0.8f),
+                                fontSize = 12.sp,
+                                letterSpacing = 0.3.sp
+                            )
+                        }
+                    }
+
+                    // Right - Icons
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        IconButton(onClick = onNotificationClick, modifier = Modifier.size(24.dp)) {
+                            Icon(
+                                imageVector = Icons.Outlined.Notifications,
+                                contentDescription = "Notifications",
+                                tint = Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        IconButton(onClick = onNotificationClick, modifier = Modifier.size(24.dp)) {
+                            Icon(
+                                painter = painterResource(R.drawable.icon),
+                                contentDescription = "Custom Icon",
+                                tint = Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        IconButton(onClick = onCartClick, modifier = Modifier.size(24.dp)) {
+                            Icon(
+                                imageVector = Icons.Outlined.ShoppingCart,
+                                contentDescription = "Cart",
+                                tint = Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+
+                content()
+            }
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+
+        }
+    }
+}
+data class category (
+        val catid:String,
+        val icon:String,
+        val name:String
+        )
+val categorylist= listOf(
+    category("1","","Fashion"),
+    category("2","","Hotel"),
+    category("3","","Cafe"),
+    category("4","","Dinning"),
+    category("5","","Dinning"),
+)
+@Composable
+fun CategoryItem(category: category){
+
+    Card(colors = CardDefaults.cardColors(containerColor = Color(0xff6B0221)), border = BorderStroke(1.dp,Color(0xFFFFD700)), shape = RoundedCornerShape(12.dp), modifier = Modifier
+        .height(100.dp)
+        .width(80.dp)) {
+        Column (modifier = Modifier.padding(top = 5.dp, bottom = 0.dp, start = 5.dp)) {
+            Text(text = category.name, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+            Spacer(modifier = Modifier.height(0.dp))
+            AsyncImage(model = R.drawable.fashion, contentDescription = null,
+                modifier = Modifier
+                    .size(50.dp)
+                    .offset(x = 20.dp, y = 10.dp)
+                , alignment = Alignment.TopEnd)
+        }
+
+
+    }
+}
+
+@Composable
+private fun ImageSliderItem(
+    imageUrl: String,
+    modifier: Modifier = Modifier
+) {
+
+
+
+    AsyncImage(
+        model=imageUrl,
+        contentDescription = "Slider Image",
+        modifier = Modifier.fillMaxSize(),
+        contentScale = ContentScale.Crop
+    )
+
+}
+
+@Composable
+fun AutoImageSlider(
+    imageUrls: List<String>,
+    modifier: Modifier = Modifier,
+    autoSlideInterval: Long = 5000L, // 5 seconds
+    slideAnimationDuration: Int = 800 // milliseconds
+) {
+    if (imageUrls.isEmpty()) return
+
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        pageCount = { imageUrls.size }
+    )
+
+    // Auto-scroll effect
+    LaunchedEffect(pagerState) {
+        while (true) {
+            delay(autoSlideInterval)
+            val nextPage = (pagerState.currentPage + 1) % imageUrls.size
+            pagerState.animateScrollToPage(
+                page = nextPage,
+                animationSpec = tween(durationMillis = slideAnimationDuration)
+            )
+        }
+    }
+
+    Box(
+        modifier = modifier.fillMaxWidth(),
+
+        ) {
+        // Image Pager
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+                .height(175.dp),
+            pageSpacing = 8.dp
+        ) { page ->
+            ImageSliderItem(
+                imageUrl = imageUrls[page],
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
+
+
+        // Red Dot Indicators
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(8.dp)
+        ) {
+            repeat(imageUrls.size) { index ->
+                val isSelected = pagerState.currentPage == index
+                Box(
+                    modifier = Modifier
+                        .size(if (isSelected) 12.dp else 8.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (isSelected) BtnColor else BtnColor.copy(alpha = 0.5f)
+                        )
+                )
+            }
+        }
+    }
+}
+
+
+
+@Composable
+fun ChipRowWithSelectiveIcons() {
+    val chips = listOf(
+        ChipData("Filter", Icons.Default.List),
+        ChipData("Sort by", Icons.Default.ArrowDropDown),
+        ChipData("Offers", null),
+        ChipData("Distance", null)
+    )
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        chips.forEach { chip ->
+            ChipWithOptionalIcon(label = chip.label, icon = chip.icon)
+        }
+    }
+}
+
+@Composable
+fun ChipWithOptionalIcon(label: String, icon: ImageVector?) {
+    Surface(
+        modifier = Modifier.height(36.dp),
+        shape = RoundedCornerShape(18.dp),
+        color = Color.White ,
+        border = BorderStroke(1.dp, Color.Gray),
+        shadowElevation = 2.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 12.dp)
+                .clickable { /* Handle click */ },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(text = label, style = MaterialTheme.typography.bodyMedium)
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = "$label icon",
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+    }
+}
+
+data class ChipData(val label: String, val icon: ImageVector?)
+enum class OfferValidation{
+    Valid,Expired
+}
+enum class MarketingOption(val title: String) {
+    OFFERS("Offers"),
+    CUSTOMER_ENGAGEMENT("Customer engagement"),
+    CONTEST_FOR_CUSTOMERS("Contest for customers"),
+    SCRATCH_AND_WIN("Scratch & win"),
+    LUCKY_DRAW("Lucky draw"),
+    CAMPAIGNS("Campaigns"),
+    EVENTS("Events");
+
+    companion object {
+        val allOptions = values().toList()
+    }
+}
+data class Media(
+    val id: String,
+    val type: String,
+    val url: String,
+    val s: String
+)
+data class HomeOffer(
+    val offerId:String="",
+    val Type:MarketingOption?=null,
+    val offerValid:OfferValidation?=null,
+    val Media_list:List<String> = emptyList(),
+    val discount:String="",
+    val startDate:String="",
+    val media:List<Media> =ArrayList(),
+    val approval:String="",
+    val endDate:String="",
+    val active:String="",
+    val offerTitle:String="",
+    val brand_logo_url:String?="",
+    val offerTag:String="",
+    val offerDescription:String="",
+    val termsAndCondition:String="",
+)
+private fun drawHorizontalDots(
+    drawScope: DrawScope,
+    color: Color,
+    dotSizePx: Float,
+    spacingPx: Float,
+    dotCount: Int?
+) {
+    val width = drawScope.size.width
+    val height = drawScope.size.height
+    val centerY = height / 2
+    val radius = dotSizePx / 2
+
+    val totalDotWidth = dotSizePx + spacingPx
+    val calculatedDotCount = dotCount ?: (width / totalDotWidth).toInt()
+    val actualWidth = calculatedDotCount * totalDotWidth - spacingPx
+    val startX = (width - actualWidth) / 2
+
+    repeat(calculatedDotCount) { index ->
+        val x = startX + index * totalDotWidth + radius
+        drawScope.drawCircle(
+            color = color,
+            radius = radius,
+            center = Offset(x, centerY)
+        )
+    }
+}
+
+private fun drawVerticalDots(
+    drawScope: DrawScope,
+    color: Color,
+    dotSizePx: Float,
+    spacingPx: Float,
+    dotCount: Int?
+) {
+    val width = drawScope.size.width
+    val height = drawScope.size.height
+    val centerX = width / 2
+    val radius = dotSizePx / 2
+
+    val totalDotHeight = dotSizePx + spacingPx
+    val calculatedDotCount = dotCount ?: (height / totalDotHeight).toInt()
+    val actualHeight = calculatedDotCount * totalDotHeight - spacingPx
+    val startY = (height - actualHeight) / 2
+
+    repeat(calculatedDotCount) { index ->
+        val y = startY + index * totalDotHeight + radius
+        drawScope.drawCircle(
+            color = color,
+            radius = radius,
+            center = Offset(centerX, y)
+        )
+    }
+}
+@Composable
+fun DottedDivider(
+    modifier: Modifier = Modifier,
+    color: Color = Color.Gray,
+    dotSize: Dp = 2.dp,
+    spacing: Dp = 4.dp,
+    isVertical: Boolean = false,
+    dotCount: Int? = null
+) {
+    val density = LocalDensity.current
+
+    Canvas(modifier = modifier) {
+        val dotSizePx = with(density) { dotSize.toPx() }
+        val spacingPx = with(density) { spacing.toPx() }
+
+        if (isVertical) {
+            drawVerticalDots(
+                drawScope = this,
+                color = color,
+                dotSizePx = dotSizePx,
+                spacingPx = spacingPx,
+                dotCount = dotCount
+            )
+        } else {
+            drawHorizontalDots(
+                drawScope = this,
+                color = color,
+                dotSizePx = dotSizePx,
+                spacingPx = spacingPx,
+                dotCount = dotCount
+            )
+        }
+    }
+}
+@Composable
+fun HomeOfferView(offerModel: Offer, offerClick:(String)->Unit  ){
+
+    Card (
+        modifier = Modifier
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable { offerClick(offerModel.id.toString()) },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+
+        ){
+        Column() {
+            Box(){
+                val imagelist=offerModel.media.map {
+                    it.url
+                }
+                AutoImageSlider(imageUrls = imagelist)
+                Box(
+                    modifier = Modifier
+
+                        .clip(
+                            RoundedCornerShape(
+                                topStart = 0.dp,
+                                topEnd = 12.dp,
+                                bottomStart = 0.dp,
+                                bottomEnd = 0.dp
+                            )
+                        )
+                        .background(Color.White)
+                        .align(Alignment.BottomStart)
+                ) {
+                    Text(text = "${offerModel.quantity} left", color = Color.Black, fontSize = 14.sp, modifier = Modifier.padding(vertical = 6.dp, horizontal = 12.dp))
+
+                }
 
 
 
 
+            }
+
+
+            Column(modifier = Modifier.padding(12.dp)) {
+                Spacer(Modifier.height(5.dp))
+                Text(
+                    text = offerModel.title,
+                    fontSize = 22.sp,
+                    fontFamily = satoshi_regular,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.Black
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = offerModel.description,
+                    fontSize = 14.sp,
+                    fontFamily = satoshi_regular,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                DottedDivider(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color.Gray,
+
+                    )
+                Spacer(modifier = Modifier.height(12.dp))
+                val is_approved=offerModel.approval.equals("accepted")
+                val is_active=offerModel.approval.equals("active")
+                val color = when {
+                    is_approved && is_active -> Color.Green
+                    is_approved && !is_active -> Color.Red
+                    !is_approved -> Color(0xFFFFA500) // Orange color
+                    else -> Color.Gray // fallback (optional)
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp)
+                ) {
+                    // Discount row (start)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(R.drawable.percentage_red),
+                            contentDescription = "percentage",
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = offerModel.discount,
+                            fontSize = 15.sp,
+                            fontFamily = satoshi_regular,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                }
+
+
+
+
+            }
+
+
+
+        }
+
+
+    }
+
+
+}
+@Composable
+fun CartOfferView(offerModel: DataXX, openQr:(id:String)->Unit  ){
+    val offer=offerModel.offer
+    val media=if(offer.media.isEmpty()) emptyList() else offerModel.offer.media.map { it.url }
+    Card (
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+
+        ){
+        Column() {
+            Box(){
+                AutoImageSlider(imageUrls = media)
+                Box(
+                    modifier = Modifier
+
+                        .clip(
+                            RoundedCornerShape(
+                                topStart = 0.dp,
+                                topEnd = 12.dp,
+                                bottomStart = 0.dp,
+                                bottomEnd = 0.dp
+                            )
+                        )
+                        .background(Color.White)
+                        .align(Alignment.BottomStart)
+                ) {
+                    Text(text =  "${offer.quantity} left", color = Color.Black, fontSize = 14.sp, modifier = Modifier.padding(vertical = 6.dp, horizontal = 12.dp))
+
+                }
+
+
+
+
+            }
+
+
+            Column(modifier = Modifier.padding(12.dp)) {
+                Spacer(Modifier.height(5.dp))
+                Text(
+                    text = offer.title,
+                    fontSize = 22.sp,
+                    fontFamily = satoshi_regular,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.Black
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = offer.description,
+                    fontSize = 14.sp,
+                    fontFamily = satoshi_regular,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+                DottedDivider(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color.Gray,
+
+                    )
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                       // .padding(horizontal = 12.dp)
+                ) {
+                    // Discount row (start)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(R.drawable.percentage_red),
+                            contentDescription = "percentage",
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = offer.discount,
+                            fontSize = 15.sp,
+                            fontFamily = satoshi_regular,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+
+
+
+
+            }
+            ButtonView(text = "Open QR", color = BtnColor.copy(alpha = 0.2f), textColor = BtnColor, modifier = Modifier.padding(vertical = 0.dp)) {
+                openQr(offer.vendor_id.toString())
+            }
+
+
+
+        }
+
+
+    }
+
+
+}
+
+fun generateQRCodeBitmap(content: String): Bitmap {
+    val size = 512
+    val bits = MultiFormatWriter().encode(content, BarcodeFormat.QR_CODE, size, size)
+    val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+
+    for (x in 0 until size) {
+        for (y in 0 until size) {
+            val color = if (bits.get(x, y)) android.graphics.Color.BLACK else android.graphics.Color.WHITE
+            bitmap.setPixel(x, y, color)
+        }
+    }
+
+    return bitmap
+}
+@Composable
+fun CartBottomSheet(jsonData: String,offerId: String,onBack:()->Unit){
+    val bitmap = remember(jsonData) { generateQRCodeBitmap(jsonData) }
+    val imageBitmap = remember(bitmap) { bitmap.asImageBitmap() }
+    Surface(
+        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+        color = Color.White,
+        tonalElevation = 8.dp,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(24.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Image(
+                bitmap = imageBitmap,
+                contentDescription = "QR Code",
+                modifier = Modifier
+                    .size(200.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.White)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "Present this QR code at the outlet",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+                ButtonView("Go Back") {
+                    onBack()
+
+            }
+
+        }
+    }
+}
+
+@Composable
+fun QRCodeBottomSheet(jsonData: String,offerId:String, onAddToCart: () -> Unit,goback:()->Unit,is_saved:Boolean=false) {
+    val context = LocalContext.current
+    val bitmap = remember(jsonData) { generateQRCodeBitmap(jsonData) }
+    var showloading by remember { mutableStateOf(false) }
+    val imageBitmap = remember(bitmap) { bitmap.asImageBitmap() }
+    val viewnodel:HomePageViewmodel= koinViewModel()
+    val cart=viewnodel.add_to_cart_uiState.collectAsState().value
+    Log.d("is_saved",is_saved.toString())
+    LaunchedEffect(cart) {
+        when(cart){
+            UiState.Empty -> {
+                Log.d("error","empty")
+            }
+            is UiState.Error -> {
+                showloading=false
+                Toast.makeText(context, cart.message, Toast.LENGTH_SHORT).show()
+            }
+            UiState.Loading ->{
+                showloading=true
+            }
+            is UiState.Success ->{
+                showloading=false
+                Log.d("success","s")
+                    viewnodel.resetaddtocart()
+                    onAddToCart()
+            }
+        }
+    }
+
+    Surface(
+        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+        color = Color.White,
+        tonalElevation = 8.dp,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(24.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Image(
+                bitmap = imageBitmap,
+                contentDescription = "QR Code",
+                modifier = Modifier
+                    .size(200.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.White)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = if(is_saved)"Present this QR code at the outlet" else "QR Code Generated",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+            if(!is_saved) {
+                Text(
+                    text = "Now visit the outlet and show this QR code",
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            if(showloading){
+                CircularProgressIndicator(color = BtnColor)
+            }
+            else {
+                ButtonView(if (!is_saved) "Save to the cart" else "Go Back") {
+                    if(!is_saved) {
+                        viewnodel.addToCart(offerId)
+                        }
+                    else{
+                        goback()
+                    }
+                }
+            }
+
+        }
+    }
+}
+@Composable
+fun SearchCard(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    hint: String = "Search...",
+    onSearch: () -> Unit = {}
+) {
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp, horizontal = 16.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(horizontal = 0.dp, vertical = 0.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = "Search Icon",
+                tint = Color.Black,
+                modifier = Modifier.padding(start = 12.dp)
+            )
+
+
+            TextField(
+                value = query,
+                onValueChange = onQueryChange,
+                placeholder = { Text(hint, color = Color.Gray) },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp),
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent
+                ),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(
+                    onSearch = {
+                        onSearch()
+                        focusManager.clearFocus()
+                        keyboardController?.hide()
+                    }
+                )
+            )
+
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Clear text",
+                        tint = Color.Gray
+                    )
+                }
+            }
+        }
+    }
+}
 

@@ -11,7 +11,16 @@ sealed class Screen(val route: String) {
     }
     object HomePage : Screen("homePage")
 
+    object OfferDetail:Screen("offerDetail/{$OFFER_ID}"){
+        fun withOfferId(offerId:String):String{
+            return "offerDetail/$offerId"
+        }
+    }
+
+    object Cart:Screen("cart")
+
     companion object {
         const val MOBILE_KEY = "mobile"
+        const val OFFER_ID ="offer_id"
     }
 }

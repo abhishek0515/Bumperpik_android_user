@@ -6,7 +6,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.bumperpick.bumperickUser.Screens.Home.Cart
+import com.bumperpick.bumperickUser.Screens.Home.HomeClick
 import com.bumperpick.bumperickUser.Screens.Home.Homepage
+import com.bumperpick.bumperickUser.Screens.Home.OfferDetails
 import com.bumperpick.bumperickUser.Screens.Login.Login
 import com.bumperpick.bumperickUser.Screens.OTP.OtpScreen
 import com.bumperpick.bumperickUser.Screens.Splash.Splash
@@ -78,7 +81,32 @@ fun AppNavigation() {
 
         // HomePage
         composable(route = Screen.HomePage.route) {
-            Homepage()
+            Homepage(onHomeClick = {
+                when(it){
+                    HomeClick.CartClick -> {
+                        navController.navigate(Screen.Cart.route)
+                    }
+                    is HomeClick.OfferClick -> {
+                        navController.navigate(Screen.OfferDetail.withOfferId(it.offerId))
+                    }
+                }
+            })
+        }
+
+        composable(route =Screen.Cart.route){
+            Cart(){
+                navController.popBackStack()
+            }
+        }
+        composable(route=Screen.OfferDetail.route,
+            arguments = listOf(navArgument(Screen.OFFER_ID){
+                type=NavType.StringType
+            })
+        ){ navBackStackEntry ->
+            val offerId = navBackStackEntry.arguments?.getString(Screen.OFFER_ID)?:""
+            OfferDetails(offerId){
+                navController.popBackStack()
+            }
         }
     }
 }

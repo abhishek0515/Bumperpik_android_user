@@ -16,7 +16,7 @@ class AuthRepositoryImpl(
 
     override suspend fun checkAlreadyLogin(): Result<Boolean> {
         return try {
-            val userId = dataStoreManager.getUserId.firstOrNull()
+            val userId = dataStoreManager.getToken.firstOrNull()
             println("USERID $userId")
             Result.Success(!userId.isNullOrEmpty())
         } catch (e: Exception) {
@@ -33,7 +33,7 @@ class AuthRepositoryImpl(
             
             
             val generatedUserId = UUID.randomUUID().toString()
-            dataStoreManager.saveUserId(generatedUserId)
+
             Result.Success(generatedUserId)
         } catch (e: Exception) {
             Result.Error("Login failed", e)
@@ -87,7 +87,10 @@ class AuthRepositoryImpl(
             val verify_Otp= safeApiCall { apiService.cust_verify_otp(mobileNumber.replace(" ",""),otp) }
             when(verify_Otp) {
                 is ApiResult.Success->{
-                    if(verify_Otp.data.code==200) Result.Success(true)
+                    if(verify_Otp.data.code==200){
+                        dataStoreManager.saveUserId(verify_Otp.data.meta.token,verify_Otp.data.data.customer_id.toString())
+                        Result.Success(true)
+                    }
                     else Result.Error(verify_Otp.data.message)
 
 

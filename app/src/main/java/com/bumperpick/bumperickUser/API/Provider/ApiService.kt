@@ -1,5 +1,9 @@
 package com.bumperpick.bumperpickvendor.API.Provider
 
+import com.bumperpick.bumperickUser.API.New_model.CustomerOffer
+import com.bumperpick.bumperickUser.API.New_model.CustomerOfferDetail
+import com.bumperpick.bumperickUser.API.New_model.LoginModel
+import com.bumperpick.bumperickUser.API.New_model.cartDetails
 import com.bumperpick.bumperpickvendor.API.Model.Category_Model
 import com.bumperpick.bumperpickvendor.API.Model.Subscription
 import com.bumperpick.bumperpickvendor.API.Model.Vendor_Register_Model
@@ -7,6 +11,7 @@ import com.bumperpick.bumperpickvendor.API.Model.success_model
 import com.bumperpick.bumperpickvendor.API.Model.vendor_register_confirm
 import com.bumperpick.bumperpickvendor.API.Model.vendor_subscription
 import com.bumperpick.bumperpickvendor.API.Model.verify_otp
+import com.google.android.gms.common.internal.safeparcel.SafeParcelable.Param
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
@@ -18,6 +23,8 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.PartMap
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ApiService {
     @FormUrlEncoded
@@ -53,5 +60,19 @@ interface ApiService {
    @FormUrlEncoded
    @POST("api/vendor/registration-confirm")
    suspend fun registration_confirm(@FieldMap map: Map<String, String>):Response<vendor_register_confirm>
+   @FormUrlEncoded
+   @POST("api/customer/auth-google")
+   suspend fun auth_google(@Field("email") email:String):Response<LoginModel>
 
+   @GET("api/customer/offers")
+   suspend fun customer_offer(@Query("token")token: String):Response<CustomerOffer>
+
+   @GET("api/customer/offers-details/{id}")
+   suspend fun offer_details(@Path("id")id:String,@Query("token")token: String):Response<CustomerOfferDetail>
+    @FormUrlEncoded
+   @POST("api/customer/cart-offers/create")
+   suspend fun cart_add(@Field("token")token: String,@Field("offer_id")offer_id:String):Response<CustomerOfferDetail>
+
+   @GET("api/customer/cart-offers")
+   suspend fun cart_data(@Query("token")token: String):Response<cartDetails>
 }

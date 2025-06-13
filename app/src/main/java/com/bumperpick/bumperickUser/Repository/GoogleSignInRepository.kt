@@ -1,8 +1,12 @@
 package com.bumperpick.bumperickUser.Repository
 
+import DataStoreManager
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import com.bumperpick.bumperpickvendor.API.Provider.ApiResult
+import com.bumperpick.bumperpickvendor.API.Provider.ApiService
+import com.bumperpick.bumperpickvendor.API.Provider.safeApiCall
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -12,7 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 
-class GoogleSignInRepository(private val context: Context) {
+class GoogleSignInRepository(private val context: Context,val apiService: ApiService) {
     private val _signInState = MutableStateFlow<GoogleSignInState>(GoogleSignInState.Idle)
     val signInState: StateFlow<GoogleSignInState> = _signInState.asStateFlow()
 
@@ -32,6 +36,7 @@ class GoogleSignInRepository(private val context: Context) {
     suspend fun processSignInResult(data: Intent?): kotlin.Result<GoogleUserData> {
         return try {
             _signInState.value = GoogleSignInState.Loading
+            val dataStoreManager =DataStoreManager(context)
 
             if (data == null) {
                 throw Exception("Sign-in intent data is null")
@@ -50,7 +55,20 @@ class GoogleSignInRepository(private val context: Context) {
 
             Log.d("GoogleSignIn", "Sign-in successful: email=${account.email}")
 
-            _signInState.value = GoogleSignInState.Success(userData)
+            val result= safeApiCall { apiService.auth_google(account.email!!) }
+            when (result){
+                is ApiResult.Error -> {
+                    Log.e("GoogleSignIn", "Sign-in failed: ${result.message}")
+                    _signInState.value = GoogleSignInState.Error("Sign-in failed: ${result.message}")
+
+                }
+                is ApiResult.Success -> {
+                    dataStoreManager.saveUserId(result.data.meta.token,result.data.data.customer_id.toString())
+                    _signInState.value = GoogleSignInState.Success(userData)
+                }
+            }
+
+
             kotlin.Result.success(userData)
 
         } catch (e: ApiException) {

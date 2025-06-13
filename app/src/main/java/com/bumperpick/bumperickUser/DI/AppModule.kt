@@ -5,6 +5,9 @@ import DataStoreManager
 import com.bumperpick.bumperickUser.Repository.AuthRepository
 import com.bumperpick.bumperickUser.Repository.AuthRepositoryImpl
 import com.bumperpick.bumperickUser.Repository.GoogleSignInRepository
+import com.bumperpick.bumperickUser.Repository.OfferRepository
+import com.bumperpick.bumperickUser.Repository.OfferRepositoryImpl
+import com.bumperpick.bumperickUser.Screens.Home.HomePageViewmodel
 import com.bumperpick.bumperickUser.Screens.Login.GoogleSignInViewModel
 import com.bumperpick.bumperickUser.Screens.Login.LoginViewmodel
 import com.bumperpick.bumperickUser.Screens.OTP.OtpViewModel
@@ -30,11 +33,14 @@ val appModule = module {
 
     // Repository
     single<AuthRepository> { AuthRepositoryImpl(get(),get()) }
-    single { GoogleSignInRepository(get()) }
+    single { GoogleSignInRepository(get(),get()) }
+    single <OfferRepository>{ OfferRepositoryImpl(get(),get()) }
     // ViewModel
     viewModel { SplashViewmodel(get()) }
     viewModel { LoginViewmodel(get()) }
     viewModel { OtpViewModel(get()) }
     viewModel { GoogleSignInViewModel(get()) }
+    viewModel { HomePageViewmodel(get()) }
+
 
 }

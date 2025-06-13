@@ -150,7 +150,7 @@ fun Login(
                 painter = painterResource(id = R.drawable.image_1),
                 contentDescription = "BumperPick Logo",
                 modifier = Modifier
-                    .height(36.dp)
+                    .height(72.dp)
                     .width(200.dp)
                     .padding(start = 20.dp, end = 20.dp)
             )

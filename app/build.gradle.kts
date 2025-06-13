@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.api.ApkVariantOutputImpl
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -7,7 +9,16 @@ plugins {
 android {
     namespace = "com.bumperpick.bumperickUser"
     compileSdk = 35
-
+    applicationVariants.all {
+        if (buildType.name == "debug") {
+            outputs.all {
+                // Cast to ApkVariantOutputImpl to access outputFileName
+                val outputImpl = this as ApkVariantOutputImpl
+                val appName = "BumperPick Customer" // Change as needed
+                outputImpl.outputFileName = "$appName-${name}.apk"
+            }
+        }
+    }
     defaultConfig {
         applicationId = "com.bumperpick.bumperickUser"
         minSdk = 28
@@ -60,7 +71,9 @@ dependencies {
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 // ViewModel
     implementation("io.coil-kt:coil-compose:2.5.0")
-
+// build.gradle (app)
+    implementation("com.google.zxing:core:3.5.1")
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.0")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.2.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("androidx.navigation:navigation-compose:2.7.3")
@@ -73,6 +86,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.play.services.location)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
