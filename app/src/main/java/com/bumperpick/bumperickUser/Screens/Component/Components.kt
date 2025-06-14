@@ -3,7 +3,12 @@ package com.bumperpick.bumperickUser.Screens.Component
 import android.graphics.Bitmap
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -39,6 +44,7 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.MoreVert
@@ -88,6 +94,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import com.bumperpick.bumperickUser.API.New_model.DataXX
@@ -352,35 +359,52 @@ fun BottomNavigationBar(
 fun LocationCard(
     modifier: Modifier = Modifier,
     onNotificationClick: () -> Unit = {},
+    onLocationClick: () -> Unit = {},
     onCartClick: () -> Unit = {},
-    content: @Composable ColumnScope.() -> Unit = {} // Dynamic content support
+    content: @Composable ColumnScope.() -> Unit = {}
 ) {
-    val context= LocalContext.current
-    val locationHelper = LocationHelper(context)
-    var locationTitle by remember { mutableStateOf("Location") }
-    var locationSubtitle by remember { mutableStateOf("not available") }
-    LaunchedEffect(locationHelper) {
-        val location_pair=locationHelper.getCurrentAddress()
-        locationTitle=location_pair.first
-        locationSubtitle=location_pair.second
+    val context = LocalContext.current
+    val locationHelper = remember { LocationHelper(context) }
+    var locationTitle by remember { mutableStateOf("") }
+    var locationSubtitle by remember { mutableStateOf("") }
+    var isLocationLoading by remember { mutableStateOf(true) }
+    var locationError by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        try {
+            val locationPair = locationHelper.getCurrentAddress()
+            locationTitle = locationPair.first.ifEmpty { "Unknown Location" }
+            locationSubtitle = locationPair.second.ifEmpty { "Tap to set location" }
+            isLocationLoading = false
+            locationError = false
+        } catch (e: Exception) {
+            locationTitle = "Location Error"
+            locationSubtitle = "Tap to retry"
+            isLocationLoading = false
+            locationError = true
+        }
     }
+
     var size by remember { mutableStateOf(IntSize.Zero) }
-    val backgroundModifier = if (size.width > 0 && size.height > 0) {
-        val radius = maxOf(size.width, size.height) / 1.5f
-        Modifier.background(
-            brush = Brush.radialGradient(
-                colors = listOf(Color(0xFF8B1538), Color(0xFF5A0E26)),
-                center = Offset(size.width / 2f, size.height / 2f),
-                radius = radius
+
+    val backgroundModifier = remember(size) {
+        if (size.width > 0 && size.height > 0) {
+            val radius = maxOf(size.width, size.height) / 1.5f
+            Modifier.background(
+                brush = Brush.radialGradient(
+                    colors = listOf(Color(0xFF8B1538), Color(0xFF5A0E26)),
+                    center = Offset(size.width / 2f, size.height / 2f),
+                    radius = radius
+                )
             )
-        )
+        } else {
+            Modifier.background(Color(0xFF8B1538))
+        }
     }
-    else {
-        Modifier.background(Color(0xFF8B1538)) }
+
     Card(
         modifier = modifier
             .fillMaxWidth()
-
             .onSizeChanged { size = it },
         shape = RoundedCornerShape(
             topStart = 0.dp,
@@ -391,92 +415,173 @@ fun LocationCard(
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-
         Column(modifier = Modifier.then(backgroundModifier)) {
-
-
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-
-                .padding(top = 40.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
-        ) {
-            Column {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Left - Location
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Outlined.LocationOn,
-                            contentDescription = "Location",
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Column {
-                            Text(
-                                text = locationTitle,
-                                color = Color.White,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                letterSpacing = 0.5.sp
-                            )
-                            Text(
-                                text = locationSubtitle,
-                                color = Color.White.copy(alpha = 0.8f),
-                                fontSize = 12.sp,
-                                letterSpacing = 0.3.sp
-                            )
-                        }
-                    }
-
-                    // Right - Icons
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 48.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
+            ) {
+                Column {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { onLocationClick() }
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = onNotificationClick, modifier = Modifier.size(24.dp)) {
-                            Icon(
-                                imageVector = Icons.Outlined.Notifications,
-                                contentDescription = "Notifications",
-                                tint = Color.White,
-                                modifier = Modifier.size(18.dp)
-                            )
+                        // Enhanced Location Row
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            // Location Icon with loading state
+                            Box(
+                                modifier = Modifier.size(24.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (isLocationLoading) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(18.dp),
+                                        color = Color.White,
+                                        strokeWidth = 2.dp
+                                    )
+                                } else {
+
+                                    Icon(
+                                        imageVector = if (locationError) {
+                                            Icons.Outlined.LocationOn
+                                        } else {
+                                            Icons.Outlined.LocationOn
+                                        },
+                                        contentDescription = "Location",
+                                        tint = if (locationError) {
+                                            Color.White.copy(alpha = 0.7f)
+                                        } else {
+                                            Color.White
+                                        },
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            // Location Text with better styling
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(0.dp)
+                            ) {
+                                Row {
+
+
+                                    Text(
+                                        text = if (isLocationLoading) "Getting location..." else locationTitle,
+                                        color = Color.White,
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        letterSpacing = 0.5.sp,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+
+                                    // Animated dropdown arrow
+                                    Icon(
+                                        imageVector = Icons.Outlined.ArrowDropDown,
+                                        contentDescription = "Expand location options",
+                                        tint = Color.White.copy(alpha = 0.8f),
+                                        modifier = Modifier
+                                            .size(20.dp)
+                                            .padding(start = 2.dp)
+                                    )
+                                }
+
+                                AnimatedVisibility(
+                                    visible = !isLocationLoading,
+                                    enter = fadeIn() + slideInVertically(),
+                                    exit = fadeOut() + slideOutVertically()
+                                ) {
+                                    Text(
+                                        text = locationSubtitle,
+                                        color = Color.White.copy(alpha = 0.8f),
+                                        fontSize = 14.sp,
+                                        letterSpacing = 0.3.sp,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+
+
                         }
-                        IconButton(onClick = onNotificationClick, modifier = Modifier.size(24.dp)) {
-                            Icon(
-                                painter = painterResource(R.drawable.icon),
-                                contentDescription = "Custom Icon",
-                                tint = Color.White,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                        IconButton(onClick = onCartClick, modifier = Modifier.size(24.dp)) {
-                            Icon(
-                                imageVector = Icons.Outlined.ShoppingCart,
-                                contentDescription = "Cart",
-                                tint = Color.White,
-                                modifier = Modifier.size(18.dp)
-                            )
+
+                        // Action Icons with better spacing
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            // Cart Icon with subtle background
+                            IconButton(
+                                onClick = onCartClick,
+                                modifier = Modifier
+                                    .size(40.dp)
+
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.ShoppingCart,
+                                    contentDescription = "Shopping Cart",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+
+                            // Custom Icon Button
+                            IconButton(
+                                onClick = onNotificationClick,
+                                modifier = Modifier
+                                    .size(40.dp)
+
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.icon),
+                                    contentDescription = "Custom Action",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+
+                            // Notification Icon with badge support
+                            Box {
+                                IconButton(
+                                    onClick = onNotificationClick,
+                                    modifier = Modifier
+                                        .size(40.dp)
+
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Notifications,
+                                        contentDescription = "Notifications",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+
+
+                            }
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    content()
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-
-                content()
             }
-        }
-        Spacer(modifier = Modifier.height(10.dp))
-
+            Spacer(modifier = Modifier.height(10.dp))
         }
     }
 }
+
+
 data class category (
         val catid:String,
         val icon:String,
@@ -492,16 +597,16 @@ val categorylist= listOf(
 @Composable
 fun CategoryItem(category: category){
 
-    Card(colors = CardDefaults.cardColors(containerColor = Color(0xff6B0221)), border = BorderStroke(1.dp,Color(0xFFFFD700)), shape = RoundedCornerShape(12.dp), modifier = Modifier
-        .height(100.dp)
-        .width(80.dp)) {
-        Column (modifier = Modifier.padding(top = 5.dp, bottom = 0.dp, start = 5.dp)) {
+    Card(colors = CardDefaults.cardColors(containerColor = Color(0xff6B0221)), border = BorderStroke(0.5.dp,Color(0xFFFFD700)), shape = RoundedCornerShape(12.dp), modifier = Modifier
+        .height(110.dp)
+        .width(90.dp)) {
+        Column (modifier = Modifier.padding(top = 6.dp, bottom = 0.dp, start = 12.dp)) {
             Text(text = category.name, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
             Spacer(modifier = Modifier.height(0.dp))
             AsyncImage(model = R.drawable.fashion, contentDescription = null,
                 modifier = Modifier
-                    .size(50.dp)
-                    .offset(x = 20.dp, y = 10.dp)
+                    .size(60.dp)
+                    .offset(x = 18.dp, y = 15.dp)
                 , alignment = Alignment.TopEnd)
         }
 
@@ -1149,20 +1254,20 @@ fun SearchCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp, horizontal = 16.dp),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(width = 1.dp, color = Color.Gray.copy(alpha = 0.3f)),
+          colors = CardDefaults.cardColors(containerColor = grey)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .padding(horizontal = 0.dp, vertical = 0.dp)
+                .padding(horizontal = 0.dp, vertical = 4.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = "Search Icon",
-                tint = Color.Black,
-                modifier = Modifier.padding(start = 12.dp)
+                tint = Color.Gray,
+                modifier = Modifier.padding(start = 12.dp).size(30.dp)
             )
 
 
@@ -1170,6 +1275,8 @@ fun SearchCard(
                 value = query,
                 onValueChange = onQueryChange,
                 placeholder = { Text(hint, color = Color.Gray) },
+                textStyle = TextStyle(fontSize = 18.sp),
+
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp),

@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.bumperpick.bumperickUser.Screens.Home.Cart
+import com.bumperpick.bumperickUser.Screens.Home.ChooseLocation
 import com.bumperpick.bumperickUser.Screens.Home.HomeClick
 import com.bumperpick.bumperickUser.Screens.Home.Homepage
 import com.bumperpick.bumperickUser.Screens.Home.OfferDetails
@@ -89,10 +90,19 @@ fun AppNavigation() {
                     is HomeClick.OfferClick -> {
                         navController.navigate(Screen.OfferDetail.withOfferId(it.offerId))
                     }
+
+                    HomeClick.LocationClick -> {
+                        navController.navigate(Screen.Location.route)
+                    }
                 }
             })
         }
 
+        composable(route=Screen.Location.route){
+            ChooseLocation{
+                navController.popBackStack()
+            }
+        }
         composable(route =Screen.Cart.route){
             Cart(){
                 navController.popBackStack()

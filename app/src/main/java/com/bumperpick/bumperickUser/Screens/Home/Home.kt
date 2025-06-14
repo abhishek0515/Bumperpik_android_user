@@ -2,6 +2,7 @@ package com.bumperpick.bumperickUser.Screens.Home
 
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.outlined.ArrowForward
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -58,6 +61,7 @@ import org.koin.androidx.compose.koinViewModel
 sealed class HomeClick(){
     data class OfferClick(val offerId:String):HomeClick()
     object CartClick:HomeClick()
+    object LocationClick:HomeClick()
 }
 @Composable
 fun home(homeclick:(HomeClick)->Unit, viewmodel: HomePageViewmodel= koinViewModel()){
@@ -70,7 +74,10 @@ fun home(homeclick:(HomeClick)->Unit, viewmodel: HomePageViewmodel= koinViewMode
 
         LocationCard(onCartClick = {
             homeclick(HomeClick.CartClick)
-        }) {
+        },
+            onLocationClick = {
+                homeclick(HomeClick.LocationClick)
+            }) {
             // Default Search Card
             Card(
                 border = BorderStroke(1.dp, Color.Black),
@@ -99,16 +106,16 @@ fun home(homeclick:(HomeClick)->Unit, viewmodel: HomePageViewmodel= koinViewMode
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(categorylist) {
                     CategoryItem(it)
                 }
             }
         }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(30.dp))
         LazyColumn {
             item{
                 Card(
@@ -165,17 +172,24 @@ fun home(homeclick:(HomeClick)->Unit, viewmodel: HomePageViewmodel= koinViewMode
             item{
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
 
+                    Row (verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center){
+                        Image(painter = painterResource(R.drawable.left), contentDescription = null, modifier = Modifier.size(12.dp))
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = "TRENDING OFFERS",
+                            letterSpacing = 3.sp, // Use sp for text spacing, not dp
+                            color = Color.Gray,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 16.dp),
 
-                    Text(
-                        text = "TRENDING OFFERS",
-                        letterSpacing = 2.sp, // Use sp for text spacing, not dp
-                        color = Color.Gray,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+                            )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Image(painter = painterResource(R.drawable.right), contentDescription = null, modifier = Modifier.size(12.dp))
 
-                        )
+
+                    }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
 

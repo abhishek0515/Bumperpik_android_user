@@ -3,6 +3,7 @@ package com.bumperpick.bumperickUser.Screens.Home
 import DataStoreManager
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +22,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -40,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,6 +50,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bumperpick.bumperickUser.API.New_model.DataXX
+import com.bumperpick.bumperickUser.R
 import com.bumperpick.bumperickUser.Screens.Component.CartBottomSheet
 import com.bumperpick.bumperickUser.Screens.Component.CartOfferView
 import com.bumperpick.bumperickUser.Screens.Component.SearchCard
@@ -134,17 +138,25 @@ fun Cart(onBackClick: () -> Unit) {
                     ) {
                         item {
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "${offerList.size} OFFER SAVED",
-                                letterSpacing = 2.sp,
-                                color = Color.Gray,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp)
-                            )
+                            Row (verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()){
+                                Image(painter = painterResource(R.drawable.left), contentDescription = null, modifier = Modifier.size(12.dp))
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(
+                                    text = "${offerList.size} OFFER SAVED",
+                                    letterSpacing = 2.sp, // Use sp for text spacing, not dp
+                                    color = Color.Gray,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+
+                                    )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Image(painter = painterResource(R.drawable.right), contentDescription = null, modifier = Modifier.size(12.dp))
+
+
+                            }
+
                             Spacer(modifier = Modifier.height(12.dp))
                         }
 

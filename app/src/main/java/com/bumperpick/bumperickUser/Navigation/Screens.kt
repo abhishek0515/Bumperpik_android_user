@@ -16,6 +16,7 @@ sealed class Screen(val route: String) {
             return "offerDetail/$offerId"
         }
     }
+    object Location:Screen("location")
 
     object Cart:Screen("cart")
 
