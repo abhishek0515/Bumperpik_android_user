@@ -249,8 +249,9 @@ fun offerDetail( offer:Offer,onBackClick: () -> Unit){
                                     color = Color.Gray
                                 )
 
-                                Spacer(modifier = Modifier.height(8.dp))
+                            if(!offer.brand_name.equals("null")) {
 
+                                Spacer(modifier = Modifier.height(8.dp))
                                 Card(
                                     shape = RoundedCornerShape(16.dp),
                                     colors = CardDefaults.cardColors(
@@ -260,8 +261,9 @@ fun offerDetail( offer:Offer,onBackClick: () -> Unit){
                                     ),
                                     border = BorderStroke(1.dp, color = Color.Red)
                                 ) {
+                                    println("brandname :${offer.brand_name}")
                                     Text(
-                                        text = offer.brand_name,
+                                        text = offer.brand_name ?: "",
                                         fontSize = 12.sp,
                                         color = Color.Red,
                                         modifier = Modifier.padding(
@@ -270,6 +272,7 @@ fun offerDetail( offer:Offer,onBackClick: () -> Unit){
                                         )
                                     )
                                 }
+                            }
 
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Divider(color = Color.LightGray)

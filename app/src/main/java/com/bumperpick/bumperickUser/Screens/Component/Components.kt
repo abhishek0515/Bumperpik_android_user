@@ -4,6 +4,8 @@ import android.graphics.Bitmap
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -97,11 +99,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
+import com.bumperpick.bumperickUser.API.New_model.Category
 import com.bumperpick.bumperickUser.API.New_model.DataXX
 import com.bumperpick.bumperickUser.API.New_model.Offer
 import com.bumperpick.bumperickUser.Misc.LocationHelper
 import com.bumperpick.bumperickUser.Screens.Home.HomePageViewmodel
 import com.bumperpick.bumperickUser.Screens.Home.UiState
+import com.bumperpick.bumperickUser.Screens.Home.imageurls
 import com.bumperpick.bumperickUser.ui.theme.grey
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
@@ -594,25 +598,48 @@ val categorylist= listOf(
     category("4","","Dinning"),
     category("5","","Dinning"),
 )
-@Composable
-fun CategoryItem(category: category){
 
-    Card(colors = CardDefaults.cardColors(containerColor = Color(0xff6B0221)), border = BorderStroke(0.5.dp,Color(0xFFFFD700)), shape = RoundedCornerShape(12.dp), modifier = Modifier
-        .height(110.dp)
-        .width(90.dp)) {
-        Column (modifier = Modifier.padding(top = 6.dp, bottom = 0.dp, start = 12.dp)) {
-            Text(text = category.name, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
-            Spacer(modifier = Modifier.height(0.dp))
-            AsyncImage(model = R.drawable.fashion, contentDescription = null,
+
+@Composable
+fun CategoryItem(category: Category) {
+    Log.d("category", category.image_url ?: "")
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF6B0221)),
+        border = BorderStroke(0.5.dp, Color(0xFFFFD700)),
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier
+            .height(110.dp)
+            .width(90.dp)
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            AsyncImage(
+                model = category.image_url,
+                contentDescription = null,
                 modifier = Modifier
                     .size(60.dp)
-                    .offset(x = 18.dp, y = 15.dp)
-                , alignment = Alignment.TopEnd)
+                    .align(Alignment.BottomEnd)
+                    .offset(x = (2).dp, y = 2.dp)
+            )
+
+            Column(
+                modifier = Modifier
+                    .padding(start = 8.dp, top = 8.dp, end = 8.dp)
+                    .align(Alignment.TopStart)
+            ) {
+                Text(
+                    text = category.name,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
-
-
     }
 }
+
 
 @Composable
 private fun ImageSliderItem(
@@ -993,109 +1020,155 @@ fun HomeOfferView(offerModel: Offer, offerClick:(String)->Unit  ){
 
 }
 @Composable
-fun CartOfferView(offerModel: DataXX, openQr:(id:String)->Unit  ){
-    val offer=offerModel.offer
-    val media=if(offer.media.isEmpty()) emptyList() else offerModel.offer.media.map { it.url }
-    Card (
+fun CartOfferView(offerModel: DataXX, openQr: (id: String) -> Unit,deleteCart:(String)->Unit) {
+
+    val context= LocalContext.current
+    var loading by remember { mutableStateOf(false) }
+
+    val offer = offerModel.offer
+    val media = if (offer.media.isEmpty()) emptyList() else offerModel.offer.media.map { it.url }
+
+    Card(
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-
-        ){
-        Column() {
-            Box(){
-                AutoImageSlider(imageUrls = media)
-                Box(
-                    modifier = Modifier
-
-                        .clip(
-                            RoundedCornerShape(
-                                topStart = 0.dp,
-                                topEnd = 12.dp,
-                                bottomStart = 0.dp,
-                                bottomEnd = 0.dp
-                            )
-                        )
-                        .background(Color.White)
-                        .align(Alignment.BottomStart)
-                ) {
-                    Text(text =  "${offer.quantity} left", color = Color.Black, fontSize = 14.sp, modifier = Modifier.padding(vertical = 6.dp, horizontal = 12.dp))
-
-                }
-
-
-
-
+    ) {
+        if(loading){
+            Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize()) {
+                CircularProgressIndicator(color = BtnColor)
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(text = "Deleting...", color = BtnColor)
             }
 
+        }
+        else {
+            Column {
+                Box {
+                    // Delete button
 
-            Column(modifier = Modifier.padding(12.dp)) {
-                Spacer(Modifier.height(5.dp))
-                Text(
-                    text = offer.title,
-                    fontSize = 22.sp,
-                    fontFamily = satoshi_regular,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.Black
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = offer.description,
-                    fontSize = 14.sp,
-                    fontFamily = satoshi_regular,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Spacer(modifier = Modifier.height(12.dp))
-                DottedDivider(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = Color.Gray,
 
-                    )
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                       // .padding(horizontal = 12.dp)
-                ) {
-                    // Discount row (start)
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Image(
-                            painter = painterResource(R.drawable.percentage_red),
-                            contentDescription = "percentage",
-                            modifier = Modifier.size(24.dp)
+                    // Image slider
+                    AutoImageSlider(imageUrls = media)
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(24.dp)
+                            .background(
+                                color = Color.Black.copy(0.1f),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .border(
+                                0.5.dp,
+                                Color.White,
+                                shape = RoundedCornerShape(8.dp)
+                            ),
+                    ) {
+                        Icon(
+                            Icons.Outlined.Delete,
+                            contentDescription = "Delete offer",
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .clickable {
+                                    deleteCart(offerModel.id.toString())
+                                }
+                                .padding(4.dp)
+                                .size(30.dp),
+                            tint = Color.White
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
+                    }
+                    // Quantity badge
+                    Box(
+                        modifier = Modifier
+                            .clip(
+                                RoundedCornerShape(
+                                    topStart = 0.dp,
+                                    topEnd = 12.dp,
+                                    bottomStart = 0.dp,
+                                    bottomEnd = 0.dp
+                                )
+                            )
+                            .background(Color.White)
+                            .align(Alignment.BottomStart)
+                    ) {
                         Text(
-                            text = offer.discount,
-                            fontSize = 15.sp,
-                            fontFamily = satoshi_regular,
-                            fontWeight = FontWeight.SemiBold
+                            text = "${offer.quantity} left",
+                            color = Color.Black,
+                            fontSize = 14.sp,
+                            modifier = Modifier.padding(vertical = 6.dp, horizontal = 12.dp)
                         )
                     }
                 }
 
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Spacer(Modifier.height(5.dp))
 
+                    Text(
+                        text = offer.title,
+                        fontSize = 22.sp,
+                        fontFamily = satoshi_regular,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.Black,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
 
+                    Spacer(modifier = Modifier.height(12.dp))
 
+                    Text(
+                        text = offer.description,
+                        fontSize = 14.sp,
+                        fontFamily = satoshi_regular,
+                        color = Color.Black,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    DottedDivider(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = Color.Gray,
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        // Discount row
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Image(
+                                painter = painterResource(R.drawable.percentage_red),
+                                contentDescription = "percentage",
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = offer.discount,
+                                fontSize = 15.sp,
+                                fontFamily = satoshi_regular,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+                }
+
+                ButtonView(
+                    text = "Open QR",
+                    color = BtnColor.copy(alpha = 0.2f),
+                    textColor = BtnColor,
+                    modifier = Modifier.padding(vertical = 0.dp)
+                ) {
+                    openQr(offer.vendor_id.toString())
+                }
             }
-            ButtonView(text = "Open QR", color = BtnColor.copy(alpha = 0.2f), textColor = BtnColor, modifier = Modifier.padding(vertical = 0.dp)) {
-                openQr(offer.vendor_id.toString())
-            }
-
-
-
         }
-
-
     }
-
-
 }
-
 fun generateQRCodeBitmap(content: String): Bitmap {
     val size = 512
     val bits = MultiFormatWriter().encode(content, BarcodeFormat.QR_CODE, size, size)

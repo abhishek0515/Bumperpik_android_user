@@ -3,6 +3,7 @@ package com.bumperpick.bumperickUser.Screens.Home
 import android.view.View
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bumperpick.bumperickUser.API.New_model.Category
 import com.bumperpick.bumperickUser.API.New_model.CustomerOfferDetail
 import com.bumperpick.bumperickUser.API.New_model.Offer
 import com.bumperpick.bumperickUser.API.New_model.cartDetails
@@ -32,6 +33,24 @@ class HomePageViewmodel(val offerRepository: OfferRepository):ViewModel() {
 
     private val _cart_uiState = MutableStateFlow<UiState<cartDetails>>(UiState.Empty)
     val cart_uiState: StateFlow<UiState<cartDetails>> = _cart_uiState
+
+    private val _delete_cart_uiState = MutableStateFlow<UiState<String>>(UiState.Empty)
+    val delete_cart_uiState: StateFlow<UiState<String>> = _delete_cart_uiState
+    
+    private val _categories_uiState = MutableStateFlow<UiState<List<Category>>>(UiState.Empty)
+    val categories_uiState: StateFlow<UiState<List<Category>>> = _categories_uiState
+    
+    fun getCategory(){
+      viewModelScope.launch {
+          val result=offerRepository.getCategories()
+          when(result){
+              is Result.Error -> _categories_uiState.value=UiState.Error(result.message)
+              Result.Loading -> _categories_uiState.value=UiState.Loading
+              is Result.Success -> _categories_uiState.value=UiState.Success(result.data)
+          }
+
+      }
+    }
 
 
 
@@ -105,6 +124,23 @@ class HomePageViewmodel(val offerRepository: OfferRepository):ViewModel() {
 
     fun resetaddtocart() {
         _add_to_cart_uiState.value=UiState.Empty
+        _delete_cart_uiState.value=UiState.Empty
+    }
+
+    fun deleteCart(it: String) {
+        viewModelScope.launch {
+            _delete_cart_uiState.value=UiState.Loading
+            val result = offerRepository.deletecart(it)
+
+            when(result){
+                is Result.Error -> _delete_cart_uiState.value=UiState.Error(result.message)
+                Result.Loading -> _delete_cart_uiState.value=UiState.Loading
+                is Result.Success -> _delete_cart_uiState.value=UiState.Success(result.data.message)
+            }
+        }
+
+
+
     }
 
 

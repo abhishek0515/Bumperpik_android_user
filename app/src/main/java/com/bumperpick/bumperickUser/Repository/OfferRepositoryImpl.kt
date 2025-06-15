@@ -1,10 +1,12 @@
 package com.bumperpick.bumperickUser.Repository
 
 import DataStoreManager
+import com.bumperpick.bumperickUser.API.New_model.Category
 import com.bumperpick.bumperickUser.API.New_model.CustomerOfferDetail
 import com.bumperpick.bumperickUser.API.New_model.DataXX
 import com.bumperpick.bumperickUser.API.New_model.Offer
 import com.bumperpick.bumperickUser.API.New_model.cartDetails
+import com.bumperpick.bumperickUser.API.New_model.deletemodel
 import com.bumperpick.bumperpickvendor.API.Provider.ApiResult
 import com.bumperpick.bumperpickvendor.API.Provider.ApiService
 import com.bumperpick.bumperpickvendor.API.Provider.safeApiCall
@@ -25,6 +27,21 @@ class OfferRepositoryImpl(val apiService: ApiService, val dataStoreManager: Data
             }
         }
 
+    }
+
+    override suspend fun getCategories():Result< List<Category>>{
+        val token=dataStoreManager.getToken.firstOrNull()
+        val response = safeApiCall { apiService.customer_offer(token!!) }
+        when(response){
+            is ApiResult.Success->{
+                if(response.data.code==200) return Result.Success(response.data.categories)
+                else return Result.Error(response.data.message)
+            }
+
+            is ApiResult.Error ->{
+                return Result.Error(response.message)
+            }
+        }
     }
 
     override suspend fun getOfferDetails(id: String): Result<Offer> {
@@ -76,5 +93,20 @@ class OfferRepositoryImpl(val apiService: ApiService, val dataStoreManager: Data
 
     override suspend fun getUserId(): Result<String> {
         return Result.Success(dataStoreManager.getUserId.firstOrNull()!!)
+    }
+
+    override suspend fun deletecart(id: String): Result<deletemodel> {
+        val token =dataStoreManager.getToken.firstOrNull()
+        val response = safeApiCall { apiService.deleteCart(id,token.toString()) }
+        when(response){
+            is ApiResult.Success->{
+                if(response.data.code==200) return Result.Success(response.data)
+                else return Result.Error(response.data.message)
+            }
+            is ApiResult.Error->{
+                return Result.Error(response.message)
+            }
+        }
+
     }
 }

@@ -66,9 +66,12 @@ sealed class HomeClick(){
 @Composable
 fun home(homeclick:(HomeClick)->Unit, viewmodel: HomePageViewmodel= koinViewModel()){
     val offerDetails = viewmodel.offer_uiState.collectAsState().value
+    val categoryDetails = viewmodel.categories_uiState.collectAsState().value
+
     val context= LocalContext.current
     LaunchedEffect(Unit) {
         viewmodel.getOffers()
+        viewmodel.getCategory()
     }
     Column( ) {
 
@@ -107,12 +110,29 @@ fun home(homeclick:(HomeClick)->Unit, viewmodel: HomePageViewmodel= koinViewMode
             }
 
             Spacer(modifier = Modifier.height(24.dp))
+            when(categoryDetails){
+                is UiState.Error -> {
+                    Toast.makeText(context, categoryDetails.message, Toast.LENGTH_SHORT).show()
 
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(categorylist) {
-                    CategoryItem(it)
                 }
+                is UiState.Loading -> {
+
+                        CircularProgressIndicator(color = BtnColor)
+
+
+                }
+                is UiState.Success -> {
+                    val categorylist = categoryDetails.data
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        items(categorylist) {
+                            CategoryItem(it)
+                        }
+                    }
+                }
+
+                UiState.Empty -> {}
             }
+
         }
 
             Spacer(modifier = Modifier.height(30.dp))
@@ -220,7 +240,7 @@ fun home(homeclick:(HomeClick)->Unit, viewmodel: HomePageViewmodel= koinViewMode
 
                    }
                    is UiState.Success -> {
-                       val data=offerDetails.data
+                       val data=offerDetails.data.filter { !it.expire }
                        items(data) {
                            HomeOfferView(it) {
                                homeclick(HomeClick.OfferClick(it))

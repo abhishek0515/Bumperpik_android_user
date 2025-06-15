@@ -4,6 +4,7 @@ import com.bumperpick.bumperickUser.API.New_model.CustomerOffer
 import com.bumperpick.bumperickUser.API.New_model.CustomerOfferDetail
 import com.bumperpick.bumperickUser.API.New_model.LoginModel
 import com.bumperpick.bumperickUser.API.New_model.cartDetails
+import com.bumperpick.bumperickUser.API.New_model.deletemodel
 import com.bumperpick.bumperpickvendor.API.Model.Category_Model
 import com.bumperpick.bumperpickvendor.API.Model.Subscription
 import com.bumperpick.bumperpickvendor.API.Model.Vendor_Register_Model
@@ -75,4 +76,7 @@ interface ApiService {
 
    @GET("api/customer/cart-offers")
    suspend fun cart_data(@Query("token")token: String):Response<cartDetails>
+
+   @GET("api/customer/cart-offers/delete/{id}")
+   suspend fun deleteCart(@Path("id")id:String,@Query("token")token: String):Response<deletemodel>
 }

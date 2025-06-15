@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -54,6 +55,7 @@ import com.bumperpick.bumperickUser.R
 import com.bumperpick.bumperickUser.Screens.Component.CartBottomSheet
 import com.bumperpick.bumperickUser.Screens.Component.CartOfferView
 import com.bumperpick.bumperickUser.Screens.Component.SearchCard
+import com.bumperpick.bumperickUser.ui.theme.BtnColor
 import com.bumperpick.bumperickUser.ui.theme.grey
 import kotlinx.coroutines.flow.firstOrNull
 import org.koin.androidx.compose.koinViewModel
@@ -62,18 +64,41 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun Cart(onBackClick: () -> Unit) {
+
     val viewmodel: HomePageViewmodel = koinViewModel()
     val context = LocalContext.current
+    val deleteState=viewmodel.delete_cart_uiState.collectAsState().value
     val cartState = viewmodel.cart_uiState.collectAsState().value
 
     val offerList = remember { mutableStateListOf<DataXX>() }
     var offerId by remember { mutableStateOf("") }
     var showBottomSheet by remember { mutableStateOf(false) }
     var search by remember { mutableStateOf("") }
+    var loading by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     var userId by remember { mutableStateOf("") }
+    LaunchedEffect(deleteState) {
+        when(deleteState){
+            UiState.Empty -> {}
+            is UiState.Error -> {
+                loading=false
+                Toast.makeText(context, deleteState.message, Toast.LENGTH_SHORT).show()
 
+            }
+            UiState.Loading -> {
+                loading=true
+            }
+            is UiState.Success ->{
+                loading=false
+                Toast.makeText(context, deleteState.data, Toast.LENGTH_SHORT).show()
+                viewmodel.resetaddtocart()
+                viewmodel.getCart()
+
+
+            }
+        }
+    }
     // Fetch user ID once
     LaunchedEffect(Unit) {
         userId = DataStoreManager(context).getUserId.firstOrNull()?:""
@@ -93,6 +118,7 @@ fun Cart(onBackClick: () -> Unit) {
             else -> {}
         }
     }
+
 
     val filteredList = offerList.filter {
         it.offer.title.contains(search, ignoreCase = true)
@@ -159,15 +185,29 @@ fun Cart(onBackClick: () -> Unit) {
 
                             Spacer(modifier = Modifier.height(12.dp))
                         }
-
-                        items(filteredList) {
-                            CartOfferView(
-                                offerModel = it,
-                                openQr = { id ->
-                                    offerId = id
-                                    showBottomSheet = true
+                        if(loading){
+                             item {
+                                Box(modifier = Modifier.fillMaxSize()){
+                                    CircularProgressIndicator(color = BtnColor, modifier = Modifier.size(60.dp).align(Alignment.Center))
                                 }
-                            )
+
+                             }
+                        }
+                        else {
+                            items(filteredList) {
+                                CartOfferView(
+                                    offerModel = it,
+                                    openQr = { id ->
+                                        offerId = id
+                                        showBottomSheet = true
+                                    },
+                                    deleteCart = {
+                                        viewmodel.deleteCart(it)
+                                    }
+
+
+                                )
+                            }
                         }
                     }
                 }
