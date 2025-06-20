@@ -22,7 +22,12 @@ class DataStoreManager(private val context: Context) {
     }
 
     private val dataStore = context.dataStore
-
+    suspend fun clearToken(){
+        dataStore.edit { prefs->
+            prefs.remove(USER_ID)
+            prefs.remove(TOKEN)
+        }
+    }
     suspend fun saveUserId(token: String,userId:String) {
         dataStore.edit { prefs ->
             prefs[USER_ID] = userId
@@ -37,4 +42,5 @@ class DataStoreManager(private val context: Context) {
     val getToken: Flow<String?> = dataStore.data.map { prefs ->
         prefs[TOKEN]
     }
+
 }

@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.bumperpick.bumperickUser.Screens.Home.AccountClick
 import com.bumperpick.bumperickUser.Screens.Home.Cart
 import com.bumperpick.bumperickUser.Screens.Home.ChooseLocation
 import com.bumperpick.bumperickUser.Screens.Home.HomeClick
@@ -95,7 +96,17 @@ fun AppNavigation() {
                         navController.navigate(Screen.Location.route)
                     }
                 }
-            })
+            },
+                onAccountClick = {
+                    when(it){
+                        AccountClick.Logout -> {
+                            navController.navigate(Screen.Splash.route){
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    }
+                }
+            )
         }
 
         composable(route=Screen.Location.route){

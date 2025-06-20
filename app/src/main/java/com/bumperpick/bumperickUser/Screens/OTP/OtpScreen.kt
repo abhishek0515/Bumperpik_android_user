@@ -191,7 +191,7 @@ fun OtpScreen(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 16.dp)
+                    .padding(horizontal = 20.dp, vertical = 24.dp)
             ) {
                 if (state.isLoading) {
                     CircularProgressIndicator(

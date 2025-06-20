@@ -1026,6 +1026,7 @@ fun CartOfferView(offerModel: DataXX, openQr: (id: String) -> Unit,deleteCart:(S
     var loading by remember { mutableStateOf(false) }
 
     val offer = offerModel.offer
+    Log.d("offer",offer.toString())
     val media = if (offer.media.isEmpty()) emptyList() else offerModel.offer.media.map { it.url }
 
     Card(
@@ -1163,7 +1164,7 @@ fun CartOfferView(offerModel: DataXX, openQr: (id: String) -> Unit,deleteCart:(S
                     textColor = BtnColor,
                     modifier = Modifier.padding(vertical = 0.dp)
                 ) {
-                    openQr(offer.vendor_id.toString())
+                    openQr(offer.id.toString())
                 }
             }
         }

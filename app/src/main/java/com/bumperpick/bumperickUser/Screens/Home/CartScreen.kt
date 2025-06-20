@@ -198,6 +198,7 @@ fun Cart(onBackClick: () -> Unit) {
                                 CartOfferView(
                                     offerModel = it,
                                     openQr = { id ->
+                                        Log.d("offerid",id)
                                         offerId = id
                                         showBottomSheet = true
                                     },

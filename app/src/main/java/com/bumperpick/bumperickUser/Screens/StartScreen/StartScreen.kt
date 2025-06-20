@@ -40,6 +40,7 @@ import java.time.format.TextStyle
 fun StartScreen(gotoLogin:()->Unit){
 
 
+
         Column {
             Surface(
                 modifier = Modifier
@@ -127,7 +128,7 @@ fun StartScreen(gotoLogin:()->Unit){
                     ButtonView(
                         text = "Get Started",
                         modifier = Modifier
-                            .align(Alignment.BottomCenter),
+                            .align(Alignment.BottomCenter).padding(bottom = 24.dp),
                         onClick = gotoLogin
 
                     )

@@ -62,6 +62,7 @@ sealed class HomeClick(){
     data class OfferClick(val offerId:String):HomeClick()
     object CartClick:HomeClick()
     object LocationClick:HomeClick()
+
 }
 @Composable
 fun home(homeclick:(HomeClick)->Unit, viewmodel: HomePageViewmodel= koinViewModel()){

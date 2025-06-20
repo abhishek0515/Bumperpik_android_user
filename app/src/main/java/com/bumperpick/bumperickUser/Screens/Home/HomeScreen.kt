@@ -58,9 +58,9 @@ import com.bumperpick.bumperickUser.Screens.Component.NavigationItem
 
 
 @Composable
-fun Homepage(onHomeClick: (HomeClick)->Unit){
+fun Homepage(onHomeClick: (HomeClick)->Unit,onAccountClick:(AccountClick)->Unit){
 
-    HomeScreen(onHomeClick)
+    HomeScreen(onHomeClick,onAccountClick)
 
     val context = LocalContext.current
     val locationPermission = ContextCompat.checkSelfPermission(
@@ -86,7 +86,7 @@ if (locationPermission != PackageManager.PERMISSION_GRANTED) {
 }
 
 @Composable
-fun HomeScreen(onHomeClick: (HomeClick)->Unit) {
+fun HomeScreen(onHomeClick: (HomeClick)->Unit,onAccountClick: (AccountClick) -> Unit) {
     var selectedTab by remember { mutableStateOf(0) }
 
     Column(
@@ -101,7 +101,7 @@ fun HomeScreen(onHomeClick: (HomeClick)->Unit) {
 
         val navItems = listOf(
             NavigationItem("Home", icon = Icons.Outlined.Home, contentDescription = "Home"),
-            NavigationItem("Offers", icon = Icons.Default.List, contentDescription = "Create offers"),
+            NavigationItem("Categories", icon = Icons.Default.List, contentDescription = "Create offers"),
             NavigationItem("Contest", painter = painterResource(R.drawable.contest), contentDescription = "Contest"),
             NavigationItem("Account", icon = Icons.Outlined.AccountCircle, contentDescription = "Account")
         )
@@ -117,13 +117,13 @@ fun HomeScreen(onHomeClick: (HomeClick)->Unit) {
                         home(homeclick = onHomeClick)
                     }
                     1->{
-                        Offer()
+                        OfferScreen()
                     }
                     2->{
                         contest()
                     }
                     3->{
-                        account()
+                        AccountScreen(logout = {  onAccountClick(AccountClick.Logout)})
                     }
 
                 }

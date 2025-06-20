@@ -7,6 +7,8 @@ import com.bumperpick.bumperickUser.Repository.AuthRepositoryImpl
 import com.bumperpick.bumperickUser.Repository.GoogleSignInRepository
 import com.bumperpick.bumperickUser.Repository.OfferRepository
 import com.bumperpick.bumperickUser.Repository.OfferRepositoryImpl
+import com.bumperpick.bumperickUser.Screens.Home.AccountViewmodel
+import com.bumperpick.bumperickUser.Screens.Home.CategoryViewModel
 import com.bumperpick.bumperickUser.Screens.Home.HomePageViewmodel
 import com.bumperpick.bumperickUser.Screens.Login.GoogleSignInViewModel
 import com.bumperpick.bumperickUser.Screens.Login.LoginViewmodel
@@ -41,6 +43,8 @@ val appModule = module {
     viewModel { OtpViewModel(get()) }
     viewModel { GoogleSignInViewModel(get()) }
     viewModel { HomePageViewmodel(get()) }
+    viewModel { CategoryViewModel(get()) }
+    viewModel { AccountViewmodel(get(),get()) }
 
 
 }

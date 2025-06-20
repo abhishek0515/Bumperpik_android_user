@@ -7,6 +7,7 @@ import com.bumperpick.bumperickUser.API.New_model.DataXX
 import com.bumperpick.bumperickUser.API.New_model.Offer
 import com.bumperpick.bumperickUser.API.New_model.cartDetails
 import com.bumperpick.bumperickUser.API.New_model.deletemodel
+import com.bumperpick.bumperickUser.API.New_model.sub_categories
 import com.bumperpick.bumperpickvendor.API.Provider.ApiResult
 import com.bumperpick.bumperpickvendor.API.Provider.ApiService
 import com.bumperpick.bumperpickvendor.API.Provider.safeApiCall
@@ -39,6 +40,29 @@ class OfferRepositoryImpl(val apiService: ApiService, val dataStoreManager: Data
             }
 
             is ApiResult.Error ->{
+                return Result.Error(response.message)
+            }
+        }
+    }
+
+    override suspend fun getSubCategories(cat_id: Int): Result<List<sub_categories>> {
+         val token=dataStoreManager.getToken.firstOrNull()
+        val response= safeApiCall { apiService.getCategory() }
+        when(response){
+            is ApiResult.Success->{
+                if(response.data.code==200) {
+                    val data=response.data.data
+                    val subcat=data.find { it.id==cat_id }
+                    if(subcat!=null){
+                        return Result.Success(subcat.sub_categories)
+                    }
+                    else{
+                        return Result.Error("Sub category not found")
+                    }
+                }
+                else return Result.Error(response.data.message)
+            }
+            is ApiResult.Error->{
                 return Result.Error(response.message)
             }
         }

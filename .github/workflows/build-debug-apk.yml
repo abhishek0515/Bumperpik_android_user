@@ -3,7 +3,7 @@ name: Build Debug APK
 on:
   push:
     branches:
-      - main # or your desired branch
+      - main  # or your desired branch
 
 jobs:
   build:
@@ -26,21 +26,8 @@ jobs:
       - name: Build Debug APK
         run: ./gradlew assembleDebug
 
-      - name: Get commit message
-        id: get_message
-        run: |
-          COMMIT_MSG=$(git log -1 --pretty=format:"%s")
-          # Remove unsafe characters from filename
-          SAFE_COMMIT_MSG=$(echo "$COMMIT_MSG" | tr -cd '[:alnum:] ._-' | tr ' ' '_')
-          echo "message=$SAFE_COMMIT_MSG" >> $GITHUB_OUTPUT
-
-      - name: Rename APK with commit message
-        run: |
-          mkdir -p output
-          cp app/build/outputs/apk/debug/app-debug.apk "output/${{ steps.get_message.outputs.message }}.apk"
-
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: apk-${{ steps.get_message.outputs.message }}
-          path: output/*.apk
+          name: debug-apk
+          path: app/build/outputs/apk/debug/*.apk

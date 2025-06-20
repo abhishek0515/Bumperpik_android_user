@@ -6,6 +6,7 @@ import com.bumperpick.bumperickUser.API.New_model.DataXX
 import com.bumperpick.bumperickUser.API.New_model.Offer
 import com.bumperpick.bumperickUser.API.New_model.cartDetails
 import com.bumperpick.bumperickUser.API.New_model.deletemodel
+import com.bumperpick.bumperickUser.API.New_model.sub_categories
 
 interface OfferRepository {
     suspend fun getOffers(): Result<List<Offer>>
@@ -15,4 +16,5 @@ interface OfferRepository {
      suspend fun getUserId():Result<String>
     suspend fun deletecart(id: String):Result<deletemodel>
    suspend fun getCategories():Result< List<Category>>
+    suspend fun getSubCategories(cat_id:Int):Result<List<sub_categories>>
 }

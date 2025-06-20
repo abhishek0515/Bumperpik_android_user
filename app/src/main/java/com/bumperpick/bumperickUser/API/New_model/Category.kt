@@ -5,5 +5,5 @@ data class Category(
     val image_url: String?,
     val name: String,
     val slug: String,
-    val sub_categories: List<Any>
+    val sub_categories: List<sub_categories>
 )
