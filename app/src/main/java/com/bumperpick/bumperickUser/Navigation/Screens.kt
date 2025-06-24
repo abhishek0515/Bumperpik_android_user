@@ -23,5 +23,15 @@ sealed class Screen(val route: String) {
     companion object {
         const val MOBILE_KEY = "mobile"
         const val OFFER_ID ="offer_id"
+        const val SUB_CAT_ID="sub_cat_id"
+        const val SUB_CAT_NAME="sub_cat_name"
+    }
+    object EditProfile:Screen("edit_profile")
+    object Search:Screen("search")
+
+    object Offer_subcat:Screen( "offer_subcat/{$SUB_CAT_ID}/{$SUB_CAT_NAME}"){
+        fun withsubcatId(subcat_id:String,subCatName:String):String{
+            return "offer_subcat/$subcat_id/$subCatName"
+        }
     }
 }

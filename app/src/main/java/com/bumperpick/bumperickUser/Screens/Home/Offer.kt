@@ -24,7 +24,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -33,10 +35,14 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -49,13 +55,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -64,16 +74,15 @@ import com.bumperpick.bumperickUser.API.New_model.sub_categories
 import com.bumperpick.bumperickUser.R
 import com.bumperpick.bumperickUser.Screens.Component.LocationCard
 import com.bumperpick.bumperickUser.ui.theme.BtnColor
-import org.koin.androidx.compose.koinViewModel
-
-// ImprovedOfferScreen.kt
+import org.koin.androidx.compose.koinViewModel// ImprovedOfferScreen.kt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OfferScreen(viewModel: CategoryViewModel = koinViewModel()) {
+fun OfferScreen(homeclick:(HomeClick)->Unit,open_subID:(sub_cat_id:String,sub_cat_name:String)->Unit, viewModel: CategoryViewModel = koinViewModel()) {
     var showSubCategories by remember { mutableStateOf(false) }
     var selectedCategoryId by remember { mutableStateOf<Int?>(null) }
     var selectedCategoryName by remember { mutableStateOf("") }
-
+    var cat_searchQuery by remember { mutableStateOf("") }
+    var sub_cat_searchQuery by remember { mutableStateOf("") }
     val categoriesState = viewModel.categoriesUiState.collectAsState().value
     val subCategoriesState = viewModel.subCategoriesUiState.collectAsState().value
 
@@ -91,6 +100,7 @@ fun OfferScreen(viewModel: CategoryViewModel = koinViewModel()) {
         showSubCategories = false
         selectedCategoryId = null
         selectedCategoryName = ""
+        sub_cat_searchQuery = "" // Clear subcategory search when going back
     }
 
     Column(
@@ -99,55 +109,202 @@ fun OfferScreen(viewModel: CategoryViewModel = koinViewModel()) {
             .background(Color(0xFFFAFAFA))
     ) {
         if (showSubCategories) {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = selectedCategoryName,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
+            var size by remember { mutableStateOf(IntSize.Zero) }
+            val backgroundModifier = remember(size) {
+                if (size.width > 0 && size.height > 0) {
+                    val radius = maxOf(size.width, size.height) / 1.5f
+                    Modifier.background(
+                        brush = Brush.radialGradient(
+                            colors = listOf(Color(0xFF8B1538), Color(0xFF5A0E26)),
+                            center = Offset(size.width / 2f, size.height / 2f),
+                            radius = radius
+                        )
                     )
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            showSubCategories = false
-                            selectedCategoryId = null
-                            selectedCategoryName = ""
+                } else {
+                    Modifier.background(Color(0xFF8B1538))
+                }
+            }
+
+            Card(
+                modifier = Modifier
+                  //  .then(backgroundModifier)
+
+                    .fillMaxWidth()
+                    .onSizeChanged { size = it },
+                shape = RoundedCornerShape(
+                    topStart = 0.dp,
+                    topEnd = 0.dp,
+                    bottomStart = 16.dp,
+                    bottomEnd = 16.dp
+                ),
+                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Column(modifier = Modifier.fillMaxWidth().then(backgroundModifier)) {
+                    Spacer(modifier = Modifier.height(48.dp))
+                    Row(  verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(
+                            modifier = Modifier.padding(start = 16.dp),
+                            onClick = {
+                                showSubCategories = false
+                                selectedCategoryId = null
+                                selectedCategoryName = ""
+                                sub_cat_searchQuery = ""
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color.White
+                            )
                         }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color.Black
+
+                        Spacer(modifier = Modifier.width(2.dp))
+                        Text(
+                            text = selectedCategoryName,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = Color.White
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
-                )
-            )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = sub_cat_searchQuery,
+                        onValueChange = {sub_cat_searchQuery=it},
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Search,
+                                contentDescription = "Search",
+                                tint = Color.Gray
+                            )
+                        },
+                        trailingIcon = {
+                            if (sub_cat_searchQuery.isNotEmpty()) {
+                                IconButton(
+                                    onClick = { sub_cat_searchQuery=("") }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Clear,
+                                        contentDescription = "Clear",
+                                        tint = Color.Gray
+                                    )
+                                }
+                            }
+                        },
+                        placeholder = { Text(text = "Search subcategories", color = Color.Gray) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = Color.Black,
+                            focusedBorderColor = BtnColor,
+                            unfocusedContainerColor = Color.White,
+                            focusedContainerColor = Color.White
+                        )
+                    )
+                    Spacer(Modifier.height(36.dp))
+                }
+
+
+            }
+
         }
 
         if (!showSubCategories) {
-            LocationCard()
+            LocationCard(onCartClick = {
+                homeclick(HomeClick.CartClick)
+            },
+                content = {
+                    OutlinedTextField(
+                        value = cat_searchQuery,
+                        onValueChange = { cat_searchQuery = it },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Search,
+                                contentDescription = "Search",
+                                tint = Color.Gray
+                            )
+                        },
+                        trailingIcon = {
+                            if (cat_searchQuery.isNotEmpty()) {
+                                IconButton(
+                                    onClick = { cat_searchQuery = "" }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Clear,
+                                        contentDescription = "Clear",
+                                        tint = Color.Gray
+                                    )
+                                }
+                            }
+                        },
+                        placeholder = { Text(text = "Search for category", color = Color.Gray) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 0.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = Color.Black,
+                            focusedBorderColor = BtnColor,
+                            unfocusedContainerColor = Color.White,
+                            focusedContainerColor = Color.White
+                        )
+                    )
+                    Spacer(Modifier.height(16.dp))
+                }
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         if (!showSubCategories) {
-            CategoriesContent(
-                categoriesState = categoriesState,
-                onCategoryClick = { category ->
-                    showSubCategories = true
-                    selectedCategoryId = category.id
-                    selectedCategoryName = category.name
+            when (categoriesState) {
+                UiState.Empty -> {
+                    EmptyState(
+                        message = "No categories available",
+                        icon = Icons.Outlined.Close
+                    )
                 }
-            )
+
+                is UiState.Error -> {
+                    ErrorState(
+                        message = categoriesState.message,
+                        onRetry = { viewModel.getCategories() }
+                    )
+                }
+
+                UiState.Loading -> {
+                    LoadingState()
+                }
+
+                is UiState.Success -> {
+                    val categories = categoriesState.data
+                    val filteredCategories = categories.filter {
+                        it.name.contains(cat_searchQuery, ignoreCase = true)
+                    }
+                    CategoriesContent(
+                        categoriesState = filteredCategories,
+                        onCategoryClick = { category ->
+                            showSubCategories = true
+                            selectedCategoryId = category.id
+                            selectedCategoryName = category.name
+                        },
+                        searchQuery = cat_searchQuery
+                    )
+                }
+            }
         } else {
             SubCategoriesContent(
                 subCategoriesState = subCategoriesState,
+                searchQuery = sub_cat_searchQuery,
+                onSearchQueryChange = { sub_cat_searchQuery = it },
                 onSubCategoryClick = { subCategory ->
+                    open_subID(subCategory.id.toString(),subCategory.name)
                     // Handle subcategory click
+                },
+                onRetry = {
+                    selectedCategoryId?.let { viewModel.fetchSubCategories(it) }
                 }
             )
         }
@@ -156,8 +313,9 @@ fun OfferScreen(viewModel: CategoryViewModel = koinViewModel()) {
 
 @Composable
 private fun CategoriesContent(
-    categoriesState: UiState<List<Category>>,
-    onCategoryClick: (Category) -> Unit
+    categoriesState: List<Category>,
+    onCategoryClick: (Category) -> Unit,
+    searchQuery: String
 ) {
     Column {
         // Header
@@ -168,46 +326,42 @@ private fun CategoriesContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Categories List
-        when (categoriesState) {
-            UiState.Empty -> {
-                EmptyState(
-                    message = "No categories available",
-                    icon = Icons.Outlined.Close
-                )
-            }
+        // Show search results info
+        if (searchQuery.isNotEmpty()) {
+            Text(
+                text = "${categoriesState.size} categories found",
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                fontSize = 12.sp,
+                color = Color(0xFF666666)
+            )
+        }
 
-            is UiState.Error -> {
-                ErrorState(
-                    message = categoriesState.message,
-                    onRetry = { /* retry logic */ }
-                )
-            }
-
-            UiState.Loading -> {
-                LoadingState()
-            }
-
-            is UiState.Success -> {
-                LazyColumn(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(
-                        items = categoriesState.data,
-                        key = { it.id }
-                    ) { category ->
-                        CategoryItem(
-                            category = category,
-                            onClick = { onCategoryClick(category) }
-                        )
-                    }
-
-                    // Add bottom padding
-                    item {
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
+        LazyColumn(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            if (categoriesState.isEmpty() && searchQuery.isNotEmpty()) {
+                item {
+                    EmptyState(
+                        message = "No categories found for \"$searchQuery\"",
+                        icon = Icons.Outlined.Search
+                    )
                 }
+            } else {
+                items(
+                    items = categoriesState,
+                    key = { it.id }
+                ) { category ->
+                    CategoryItem(
+                        category = category,
+                        onClick = { onCategoryClick(category) }
+                    )
+                }
+            }
+
+            // Add bottom padding
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
@@ -216,9 +370,17 @@ private fun CategoriesContent(
 @Composable
 private fun SubCategoriesContent(
     subCategoriesState: UiState<List<sub_categories>>,
-    onSubCategoryClick: (sub_categories) -> Unit
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    onSubCategoryClick: (sub_categories) -> Unit,
+    onRetry: () -> Unit
 ) {
     Column {
+        // Search Bar for Subcategories
+
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         // Header
         SectionHeader(
             title = "SUB CATEGORIES",
@@ -239,7 +401,7 @@ private fun SubCategoriesContent(
             is UiState.Error -> {
                 ErrorState(
                     message = subCategoriesState.message,
-                    onRetry = { /* retry logic */ }
+                    onRetry = onRetry
                 )
             }
 
@@ -248,18 +410,41 @@ private fun SubCategoriesContent(
             }
 
             is UiState.Success -> {
+                val filteredSubCategories = subCategoriesState.data.filter {
+                    it.name.contains(searchQuery, ignoreCase = true)
+                }
+
+                // Show search results info
+                if (searchQuery.isNotEmpty()) {
+                    Text(
+                        text = "${filteredSubCategories.size} subcategories found",
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        fontSize = 12.sp,
+                        color = Color(0xFF666666)
+                    )
+                }
+
                 LazyColumn(
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(
-                        items = subCategoriesState.data,
-                        key = { it.id }
-                    ) { subCategory ->
-                        SubCategoryItem(
-                            subCategory = subCategory,
-                            onClick = { onSubCategoryClick(subCategory) }
-                        )
+                    if (filteredSubCategories.isEmpty() && searchQuery.isNotEmpty()) {
+                        item {
+                            EmptyState(
+                                message = "No subcategories found for \"$searchQuery\"",
+                                icon = Icons.Outlined.Search
+                            )
+                        }
+                    } else {
+                        items(
+                            items = filteredSubCategories,
+                            key = { it.id }
+                        ) { subCategory ->
+                            SubCategoryItem(
+                                subCategory = subCategory,
+                                onClick = { onSubCategoryClick(subCategory) }
+                            )
+                        }
                     }
 
                     // Add bottom padding
@@ -277,51 +462,52 @@ private fun SectionHeader(
     title: String,
     subtitle: String? = null
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
         ) {
-            Divider(
-                modifier = Modifier.weight(1f),
-                color = Color(0xFFE0E0E0),
-                thickness = 1.dp
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f),
+                    color = Color(0xFFE0E0E0),
+                    thickness = 1.dp
+                )
 
-            Text(
-                text = title,
-                modifier = Modifier.padding(horizontal = 16.dp),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF666666),
-                letterSpacing = 2.sp
-            )
+                Text(
+                    text = title,
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF666666),
+                    letterSpacing = 2.sp
+                )
 
-            Divider(
-                modifier = Modifier.weight(1f),
-                color = Color(0xFFE0E0E0),
-                thickness = 1.dp
-            )
-        }
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f),
+                    color = Color(0xFFE0E0E0),
+                    thickness = 1.dp
+                )
+            }
 
-        subtitle?.let {
-            Text(
-                text = it,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 4.dp),
-                fontSize = 12.sp,
-                color = Color(0xFF999999),
-                textAlign = TextAlign.Center
-            )
+            subtitle?.let {
+                Text(
+                    text = it,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    fontSize = 12.sp,
+                    color = Color(0xFF999999),
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
-}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -363,7 +549,6 @@ private fun CategoryItem(
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop,
-
                 )
             }
 
@@ -381,8 +566,6 @@ private fun CategoryItem(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-
-
             }
 
             // Arrow Icon

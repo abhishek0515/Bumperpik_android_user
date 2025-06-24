@@ -6,12 +6,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.bumperpick.bumperickUser.Screens.EditProfile.EditProfile
 import com.bumperpick.bumperickUser.Screens.Home.AccountClick
 import com.bumperpick.bumperickUser.Screens.Home.Cart
 import com.bumperpick.bumperickUser.Screens.Home.ChooseLocation
 import com.bumperpick.bumperickUser.Screens.Home.HomeClick
 import com.bumperpick.bumperickUser.Screens.Home.Homepage
 import com.bumperpick.bumperickUser.Screens.Home.OfferDetails
+import com.bumperpick.bumperickUser.Screens.Home.OfferSearchPage
+import com.bumperpick.bumperickUser.Screens.Home.offer_subcat
 import com.bumperpick.bumperickUser.Screens.Login.Login
 import com.bumperpick.bumperickUser.Screens.OTP.OtpScreen
 import com.bumperpick.bumperickUser.Screens.Splash.Splash
@@ -81,6 +84,31 @@ fun AppNavigation() {
             )
         }
 
+        composable(
+            route=Screen.Offer_subcat.route,
+            arguments = listOf(navArgument(Screen.SUB_CAT_ID){
+                type=NavType.StringType
+            }, navArgument(Screen.SUB_CAT_NAME){
+                type=NavType.StringType
+            })
+        ){backStackEntry->
+            val sub_catid = backStackEntry.arguments?.getString(Screen.SUB_CAT_ID) ?: ""
+            val sub_catname = backStackEntry.arguments?.getString(Screen.SUB_CAT_NAME) ?: ""
+            offer_subcat(subcatId = sub_catid, subcatName =sub_catname,
+                onBackClick = {navController.popBackStack()},
+                homeclick = {
+                    when(it){
+                        HomeClick.CartClick -> {}
+                        HomeClick.LocationClick -> {}
+                        is HomeClick.OfferClick -> { navController.navigate(Screen.OfferDetail.withOfferId(it.offerId))}
+                        HomeClick.SearchClick -> {}
+                    }
+                }
+
+
+            )
+        }
+
         // HomePage
         composable(route = Screen.HomePage.route) {
             Homepage(onHomeClick = {
@@ -95,8 +123,15 @@ fun AppNavigation() {
                     HomeClick.LocationClick -> {
                         navController.navigate(Screen.Location.route)
                     }
+
+                    HomeClick.SearchClick -> {
+                   //     navController.navigate(Screen.Search.route)
+                    }
                 }
             },
+                open_subID = {sub_cat_id, sub_cat_name ->
+                    navController.navigate(Screen.Offer_subcat.withsubcatId(sub_cat_id,sub_cat_name))
+                },
                 onAccountClick = {
                     when(it){
                         AccountClick.Logout -> {
@@ -104,9 +139,18 @@ fun AppNavigation() {
                                 popUpTo(0) { inclusive = true }
                             }
                         }
+
+                        AccountClick.EditAccount -> {
+                            navController.navigate(Screen.EditProfile.route)
+                        }
                     }
                 }
             )
+        }
+        composable(route=Screen.EditProfile.route){
+            EditProfile(onBackClick = {
+                navController.popBackStack()
+            })
         }
 
         composable(route=Screen.Location.route){
@@ -128,6 +172,23 @@ fun AppNavigation() {
             OfferDetails(offerId){
                 navController.popBackStack()
             }
+        }
+        composable(route=Screen.Search.route){
+            OfferSearchPage(onBackClick = {navController.popBackStack()}, onHomeClick = {
+                when(it){
+                    HomeClick.CartClick -> {
+
+                    }
+                    HomeClick.LocationClick -> {
+
+                    }
+                    is HomeClick.OfferClick -> {
+                        navController.navigate(Screen.OfferDetail.withOfferId(it.offerId))
+                    }
+
+                    HomeClick.SearchClick ->{}
+                }
+            })
         }
     }
 }

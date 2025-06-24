@@ -14,9 +14,9 @@ import com.bumperpick.bumperpickvendor.API.Provider.safeApiCall
 import kotlinx.coroutines.flow.firstOrNull
 
 class OfferRepositoryImpl(val apiService: ApiService, val dataStoreManager: DataStoreManager):OfferRepository {
-    override suspend fun getOffers(): Result<List<Offer>> {
+    override suspend fun getOffers( subcat_id:String,cat_id: String): Result<List<Offer>> {
         val token=dataStoreManager.getToken.firstOrNull()
-        val response = safeApiCall { apiService.customer_offer(token!!) }
+        val response = safeApiCall { apiService.customer_offer(token!!,subcat_id,cat_id) }
         when(response){
             is ApiResult.Success->{
                 if(response.data.code==200) return Result.Success(response.data.offers)

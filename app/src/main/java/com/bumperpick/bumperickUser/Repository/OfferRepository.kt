@@ -9,7 +9,7 @@ import com.bumperpick.bumperickUser.API.New_model.deletemodel
 import com.bumperpick.bumperickUser.API.New_model.sub_categories
 
 interface OfferRepository {
-    suspend fun getOffers(): Result<List<Offer>>
+    suspend fun getOffers(subcat_id:String,cat_id:String): Result<List<Offer>>
      suspend fun getOfferDetails( id:String):Result<Offer>
      suspend fun addtoCart(id:String):Result<CustomerOfferDetail>
      suspend fun getCart():Result<cartDetails>

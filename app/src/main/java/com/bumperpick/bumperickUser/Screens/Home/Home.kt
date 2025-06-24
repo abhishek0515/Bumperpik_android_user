@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -62,6 +63,7 @@ sealed class HomeClick(){
     data class OfferClick(val offerId:String):HomeClick()
     object CartClick:HomeClick()
     object LocationClick:HomeClick()
+    object SearchClick:HomeClick()
 
 }
 @Composable
@@ -86,7 +88,9 @@ fun home(homeclick:(HomeClick)->Unit, viewmodel: HomePageViewmodel= koinViewMode
             Card(
                 border = BorderStroke(1.dp, Color.Black),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().clickable {
+                    homeclick(HomeClick.SearchClick)
+                }
 
             ) {
                 Row(

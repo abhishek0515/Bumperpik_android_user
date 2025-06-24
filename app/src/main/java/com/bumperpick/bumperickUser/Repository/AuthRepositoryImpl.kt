@@ -2,12 +2,20 @@ package com.bumperpick.bumperickUser.Repository
 
 import DataStoreManager
 import android.util.Log
+import com.bumperpick.bumperickUser.API.New_model.profile_model
 import com.bumperpick.bumperpickvendor.API.Provider.ApiResult
 import com.bumperpick.bumperpickvendor.API.Provider.ApiService
 import com.bumperpick.bumperpickvendor.API.Provider.safeApiCall
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 import java.util.UUID
 
 class AuthRepositoryImpl(
@@ -96,6 +104,61 @@ class AuthRepositoryImpl(
 
                 }
                 is ApiResult.Error-> Result.Error(verify_Otp.message)
+            }
+        } catch (e: Exception) {
+            Result.Error("OTP verification failed", e)
+        }
+    }
+    fun File.toMultipartPart(
+        partName: String = "image",
+        contentType: String = "application/x-www-form-urlencoded"
+    ): MultipartBody.Part {
+        val requestBody = this.asRequestBody(contentType.toMediaTypeOrNull())
+        return MultipartBody.Part.createFormData(partName, this.name, requestBody)
+    }
+    override suspend fun getProfile(): Result<profile_model> {
+        return try {
+            val userId = dataStoreManager.getToken.firstOrNull()
+            val get_profile = safeApiCall { apiService.getProfile(token = userId?:"") }
+            when(get_profile) {
+                is ApiResult.Success->{
+                    if(get_profile.data.code==200){
+                        Result.Success(get_profile.data)
+                    }
+                    else Result.Error(get_profile.data.message)
+
+
+                }
+                is ApiResult.Error-> Result.Error(get_profile.message)
+            }
+        }
+        catch (e: Exception) {
+            Result.Error("OTP verification failed", e)
+        }
+    }
+
+    override suspend fun updateProfile(image: File?, name: String, email: String,phone:String):Result<profile_model> {
+        return try {
+            val userId = dataStoreManager.getToken.firstOrNull()
+            val map = mutableMapOf<String, RequestBody>()
+            map["token"]=userId!!.toRequestBody("text/plain".toMediaType())
+            map["name"]=name.toRequestBody("text/plain".toMediaType())
+            map["email"]=email.toRequestBody("text/plain".toMediaType())
+            map["phone_number"]=phone.toRequestBody("text/plain".toMediaType())
+
+            val update= safeApiCall { apiService.update_profile(map,image=
+                if(image ==null) null else    image.toMultipartPart()
+            ) }
+            when(update){
+                is ApiResult.Success->{
+                    if(update.data.code==200){
+                        Result.Success(update.data)
+                    }
+                    else Result.Error(update.data.message)
+
+
+                }
+                is ApiResult.Error-> Result.Error(update.message)
             }
         } catch (e: Exception) {
             Result.Error("OTP verification failed", e)

@@ -122,6 +122,7 @@ fun TextFieldView(
     placeholder: String = "Placeholder...",
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     textStyle: TextStyle = LocalTextStyle.current,
+    isEnabled: Boolean = true,
     modifier: Modifier = Modifier,
     containerColor: Color = Color(0xFFF5F5F5), // Default light gray background
     singleLine: Boolean = true
@@ -139,10 +140,10 @@ fun TextFieldView(
         textStyle = textStyle,
         modifier = modifier,
         singleLine = singleLine,
-
+        enabled = isEnabled,
         colors = OutlinedTextFieldDefaults.colors(
             unfocusedContainerColor = containerColor,
-
+            disabledTextColor = Color.Black,
             focusedContainerColor = containerColor,
             disabledContainerColor = containerColor,
             cursorColor =  BtnColor,
@@ -154,9 +155,12 @@ fun TextFieldView(
 }
 
 @Composable
-fun ButtonView(text:String, modifier: Modifier=Modifier, textColor: Color=Color.White, color: Color=BtnColor, horizontal_padding:Dp=16.dp, onClick:()->Unit) {
+fun ButtonView(text:String,
+               enabled:Boolean=true,
+               modifier: Modifier=Modifier, textColor: Color=Color.White, color: Color=BtnColor, horizontal_padding:Dp=16.dp, onClick:()->Unit) {
     Button(
         onClick = { onClick() },
+        enabled = enabled,
         modifier = modifier
 
             .fillMaxWidth()

@@ -1,5 +1,7 @@
 package com.bumperpick.bumperickUser.Screens.Home
 
+import android.content.Context
+import android.content.Intent
 import android.widget.ToggleButton
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -24,6 +26,7 @@ import androidx.compose.material.icons.outlined.ExitToApp
 import androidx.compose.material.icons.outlined.KeyboardArrowRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -33,6 +36,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -54,6 +59,15 @@ import com.bumperpick.bumperickUser.ui.theme.BtnColor
 import com.bumperpick.bumperickUser.ui.theme.grey
 import com.bumperpick.bumperickUser.ui.theme.satoshi_regular
 import org.koin.androidx.compose.koinViewModel
+fun shareReferral(context: Context) {
+    val intent = Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(Intent.EXTRA_TEXT, "Try this APP")
+        type = "text/plain"
+    }
+    context.startActivity(Intent.createChooser(intent, "Share via"))
+}
+
 @Composable
 fun ReferralSettingsCard() {
     Card(
@@ -210,17 +224,21 @@ fun ToggleButton() {
 
 sealed class AccountClick(){
     object Logout:AccountClick()
+    object EditAccount:AccountClick()
 }
 @Composable
-fun AccountScreen(logout:()->Unit,viewmodel: AccountViewmodel= koinViewModel()){
+fun AccountScreen(accountclick:(AccountClick)->Unit,viewmodel: AccountViewmodel= koinViewModel()){
+    val profile =viewmodel.profileState.collectAsState().value
+    LaunchedEffect(Unit) {
+        viewmodel.getProfile()
+    }
 
-
-
+    val context= LocalContext.current
 
     val isLogout by viewmodel.isLogout.collectAsState()
 
     if (isLogout) {
-        logout()
+     accountclick(AccountClick.Logout)
     }
 
 
@@ -249,34 +267,57 @@ fun AccountScreen(logout:()->Unit,viewmodel: AccountViewmodel= koinViewModel()){
                     )
                 }
             }
-
-
-            Card(
-                modifier = Modifier.padding(16.dp).height(100.dp),
-                colors = CardDefaults.cardColors(containerColor = BtnColor)
-            ) {
-                Box(modifier = Modifier.padding(12.dp).fillMaxWidth(),){
-                    Row(modifier = Modifier.align(Alignment.CenterStart).fillMaxHeight()){
-                        Card(shape = CircleShape, modifier = Modifier.size(60.dp).align(Alignment.CenterVertically)) {
-                            AsyncImage(model = "https://bummper-tick.s3.amazonaws.com/offers/media/BAblAolhcnPnHl1pa9cYPur8vLHiUWM7AFQ1imOK.jpg", contentScale = ContentScale.Fit, contentDescription = null)
-                        }
-                        Spacer(modifier = Modifier.width(12.dp))
-
-                        Column(modifier = Modifier.align(Alignment.CenterVertically)) {
-                            Text(text = "Establishment Name", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(text = "+91 1234567890", fontSize = 14.sp, fontWeight = FontWeight.Normal, color = Color.White)
-
-
-                        }
+            when(profile){
+                UiState.Empty ->{}
+                is UiState.Error ->{
+                    Card(
+                        modifier = Modifier.padding(16.dp).height(100.dp).fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                    ){
+                        Text(text = profile.message, fontSize = 16.sp, color = BtnColor, modifier = Modifier.fillMaxWidth().align(Alignment.CenterHorizontally))
                     }
-                    Box( modifier = Modifier.align(Alignment.TopEnd).padding(6.dp)){
+                }
+                UiState.Loading ->
+                {
+                    Box(
+                        modifier = Modifier.padding(16.dp).height(100.dp).fillMaxWidth().background(Color.White),
+                    ){
+                        CircularProgressIndicator( color = BtnColor, modifier = Modifier.size(36.dp).align(Alignment.Center))
+                    }
+                }
+                is UiState.Success-> {
+                    val profile=profile.data
+                    Card(
+                        modifier = Modifier.padding(16.dp).height(100.dp),
+                        colors = CardDefaults.cardColors(containerColor = BtnColor)
+                    ) {
+                        Box(modifier = Modifier.padding(12.dp).fillMaxWidth(),){
+                            Row(modifier = Modifier.align(Alignment.CenterStart).fillMaxHeight()){
+                                Card(shape = CircleShape, modifier = Modifier.size(60.dp).align(Alignment.CenterVertically)) {
+                                    AsyncImage(model = profile.data.image_url?:"", contentScale = ContentScale.FillBounds, contentDescription = null)
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+
+                                Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+                                    Text(text = profile.data.name?:"User", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(text = profile.data.phone_number?:"", fontSize = 14.sp, fontWeight = FontWeight.Normal, color = Color.White)
 
 
-                        Icon(painter = painterResource(R.drawable.pencil_svgrepo_com), contentDescription = null, tint = Color.White, modifier = Modifier.size(27.dp),)
+                                }
+                            }
+                            Box( modifier = Modifier.align(Alignment.TopEnd).padding(6.dp)){
+
+
+                                Icon(painter = painterResource(R.drawable.pencil_svgrepo_com), contentDescription = null, tint = Color.White, modifier = Modifier.size(27.dp)
+                                    .clickable {accountclick(AccountClick.EditAccount)  },)
+                            }
+                        }
                     }
                 }
             }
+
+
 
 
             ReferralSettingsCard()
@@ -313,6 +354,7 @@ fun AccountScreen(logout:()->Unit,viewmodel: AccountViewmodel= koinViewModel()){
                     fontSize = 18.sp,)
                 Spacer(modifier = Modifier.height(24.dp))
                 ButtonView(text = "Refer now", color = BtnColor, textColor = Color.White) {
+                    shareReferral(context)
 
                 }
 

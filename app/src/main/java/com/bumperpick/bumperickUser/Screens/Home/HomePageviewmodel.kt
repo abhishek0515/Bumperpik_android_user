@@ -54,9 +54,9 @@ class HomePageViewmodel(val offerRepository: OfferRepository):ViewModel() {
 
 
 
-    fun getOffers() {
+    fun getOffers(subcat_id: String ="", cat_id: String ="") {
         viewModelScope.launch {
-           val result= offerRepository.getOffers()
+           val result= offerRepository.getOffers(subcat_id=subcat_id, cat_id = cat_id)
             when(result){
                 is Result.Error -> {
                     _offer_uiState.value=UiState.Error(result.message)
