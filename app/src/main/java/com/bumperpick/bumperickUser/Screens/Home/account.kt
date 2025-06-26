@@ -190,7 +190,7 @@ fun ReferralSettingsCard() {
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Send instant reminder",
+                    text = "Favourite ",
                     color = Color.Black,
                     fontSize = 16.sp,
                     modifier = Modifier.weight(1f)

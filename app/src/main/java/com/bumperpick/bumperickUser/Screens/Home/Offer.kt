@@ -77,7 +77,7 @@ import com.bumperpick.bumperickUser.ui.theme.BtnColor
 import org.koin.androidx.compose.koinViewModel// ImprovedOfferScreen.kt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OfferScreen(homeclick:(HomeClick)->Unit,open_subID:(sub_cat_id:String,sub_cat_name:String)->Unit, viewModel: CategoryViewModel = koinViewModel()) {
+fun OfferScreen(homeclick:(HomeClick)->Unit,open_subID:(sub_cat_id:String,sub_cat_name:String,cat_id:String)->Unit, viewModel: CategoryViewModel = koinViewModel()) {
     var showSubCategories by remember { mutableStateOf(false) }
     var selectedCategoryId by remember { mutableStateOf<Int?>(null) }
     var selectedCategoryName by remember { mutableStateOf("") }
@@ -300,7 +300,7 @@ fun OfferScreen(homeclick:(HomeClick)->Unit,open_subID:(sub_cat_id:String,sub_ca
                 searchQuery = sub_cat_searchQuery,
                 onSearchQueryChange = { sub_cat_searchQuery = it },
                 onSubCategoryClick = { subCategory ->
-                    open_subID(subCategory.id.toString(),subCategory.name)
+                    open_subID(subCategory.id.toString(),subCategory.name,selectedCategoryId.toString())
                     // Handle subcategory click
                 },
                 onRetry = {

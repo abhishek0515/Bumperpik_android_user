@@ -55,7 +55,7 @@ import com.bumperpick.bumperickUser.ui.theme.BtnColor
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun offer_subcat( subcatId:String,subcatName:String,onBackClick:()->Unit,homeclick:(HomeClick)->Unit, viewmodel: HomePageViewmodel= koinViewModel()){
+fun offer_subcat( subcatId:String,subcatName:String,cat_id:String, onBackClick:()->Unit,homeclick:(HomeClick)->Unit, viewmodel: HomePageViewmodel= koinViewModel()){
     var sub_cat_searchQuery by remember { mutableStateOf("") }
     val context= LocalContext.current
     val offerDetails = viewmodel.offer_uiState.collectAsState().value

@@ -6,10 +6,18 @@ import androidx.compose.runtime.collectAsState
 import org.koin.androidx.compose.koinViewModel
 // Required imports for the above code
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
@@ -21,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
@@ -36,10 +45,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.bumperpick.bumperickUser.API.New_model.Offer
+import com.bumperpick.bumperickUser.R
 import com.bumperpick.bumperickUser.Screens.Component.HomeOffer
 import com.bumperpick.bumperickUser.Screens.Component.HomeOfferView
 import com.bumperpick.bumperickUser.ui.theme.BtnColor
 import com.bumperpick.bumperickUser.ui.theme.grey
+import androidx.compose.ui.graphics.vector.ImageVector as ImageVector1
+val trendingItems = listOf(
+    TrendingItem("Burger king", R.drawable.arrow_growth),
+    TrendingItem("Fab Hotels", R.drawable.arrow_growth),
+    TrendingItem("D Mart", R.drawable.arrow_growth),
+    TrendingItem("Zudio", R.drawable.arrow_growth),
+    TrendingItem("H&M", R.drawable.arrow_growth),
+    TrendingItem("OYO", R.drawable.arrow_growth),
+    TrendingItem("Lacoste", R.drawable.arrow_growth),
+    TrendingItem("Nike", R.drawable.arrow_growth)
+)
+data class TrendingItem(
+    val text: String,
+    val icon: Int
+)
 
 @Composable
 fun OfferSearchPage(
@@ -55,75 +80,85 @@ fun OfferSearchPage(
     LaunchedEffect(Unit) {
         viewmodel.getOffers()
     }
-Scaffold(containerColor = Color.White) {
-    Column(
-    modifier = modifier
-        .fillMaxSize()
-        .padding(it)
+    Scaffold(containerColor = Color.White) {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(it)
 
-        .background(grey)
-) {
-    // Top Search Bar
-    SearchTopBar(
-        searchQuery = searchQuery,
-        onSearchQueryChange = { searchQuery = it },
-        isSearchActive = isSearchActive,
-        onSearchActiveChange = { isSearchActive = it },
-        onBackClick = onBackClick
-    )
-
-    // Main Content
-    when {
-        searchQuery.isEmpty() -> {
-            // Empty search state - show placeholder or trending searches
-            EmptySearchState(modifier = Modifier.fillMaxSize())
-        }
-
-        offerDetails is UiState.Loading -> {
-            LoadingState(modifier = Modifier.fillMaxSize())
-        }
-
-        offerDetails is UiState.Error -> {
-            ErrorState(
-                message = offerDetails.message,
-                modifier = Modifier.fillMaxSize()
+                .background(grey)
+        ) {
+            // Top Search Bar
+            SearchTopBar(
+                searchQuery = searchQuery,
+                onSearchQueryChange = { searchQuery = it },
+                isSearchActive = isSearchActive,
+                onSearchActiveChange = { isSearchActive = it },
+                onBackClick = onBackClick
             )
-        }
 
-        offerDetails is UiState.Success -> {
-            val filteredOffers = remember(offerDetails.data, searchQuery) {
-                if (searchQuery.isBlank()) {
-                    emptyList()
-                } else {
-                    offerDetails.data
-                        .filter { !it.expire }
-                        .filter { offer ->
-                            offer.title.contains(searchQuery, ignoreCase = true) ||
-                                    offer.description.contains(searchQuery, ignoreCase = true)
-                        }
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(text = "Trending searches ", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+            LazyVerticalStaggeredGrid(
+                columns = StaggeredGridCells.Adaptive(120.dp),
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxSize(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalItemSpacing = 12.dp
+            ) {
+                items(trendingItems) { item ->
+                    TrendingPillbox(
+                        text = item.text,
+                        icon = item.icon
+                    )
                 }
             }
-
-            SearchResultsContent(
-                offers = filteredOffers,
-                searchQuery = searchQuery,
-                onOfferClick = { offer ->
-                    onHomeClick(HomeClick.OfferClick(offer.offerId))
-                }
-            )
-        }
-
-        else -> {
-            EmptySearchState(modifier = Modifier.fillMaxSize())
         }
     }
-}}
+}
 
+
+@Composable
+fun TrendingPillbox(
+    text: String,
+    icon: Int,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { /* Handle click */ },
+        shape = RoundedCornerShape(20.dp),
+        border = BorderStroke(1.dp, BtnColor),
+        color = Color.White,
+
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = "Trending",
+                tint = Color.Red,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = text,
+                fontSize = 14.sp,
+                color = Color.Black,
+                fontWeight = FontWeight.Normal
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SearchTopBar(
+fun SearchTopBar(
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     isSearchActive: Boolean,

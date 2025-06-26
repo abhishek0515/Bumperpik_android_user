@@ -924,7 +924,7 @@ fun HomeOfferView(offerModel: Offer, offerClick:(String)->Unit  ){
 
         ){
         Column() {
-            Box(){
+            Box(modifier = Modifier.fillMaxWidth()){
                 val imagelist=offerModel.media.map {
                     it.url
                 }
@@ -1049,7 +1049,7 @@ fun CartOfferView(offerModel: DataXX, openQr: (id: String) -> Unit,deleteCart:(S
         }
         else {
             Column {
-                Box {
+                Box(modifier = Modifier.fillMaxWidth()) {
                     // Delete button
 
 
@@ -1109,7 +1109,7 @@ fun CartOfferView(offerModel: DataXX, openQr: (id: String) -> Unit,deleteCart:(S
                     Spacer(Modifier.height(5.dp))
 
                     Text(
-                        text = offer.title,
+                        text = offer.title?:"",
                         fontSize = 22.sp,
                         fontFamily = satoshi_regular,
                         fontWeight = FontWeight.SemiBold,

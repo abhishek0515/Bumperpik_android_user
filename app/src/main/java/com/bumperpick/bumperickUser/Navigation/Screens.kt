@@ -25,13 +25,14 @@ sealed class Screen(val route: String) {
         const val OFFER_ID ="offer_id"
         const val SUB_CAT_ID="sub_cat_id"
         const val SUB_CAT_NAME="sub_cat_name"
+        const val CAT_ID="cat_id"
     }
     object EditProfile:Screen("edit_profile")
     object Search:Screen("search")
 
-    object Offer_subcat:Screen( "offer_subcat/{$SUB_CAT_ID}/{$SUB_CAT_NAME}"){
-        fun withsubcatId(subcat_id:String,subCatName:String):String{
-            return "offer_subcat/$subcat_id/$subCatName"
+    object Offer_subcat:Screen( "offer_subcat/{$SUB_CAT_ID}/{$SUB_CAT_NAME}/{$CAT_ID}"){
+        fun withsubcatId(subcat_id:String,subCatName:String,catId:String):String{
+            return "offer_subcat/$subcat_id/$subCatName/$catId"
         }
     }
 }

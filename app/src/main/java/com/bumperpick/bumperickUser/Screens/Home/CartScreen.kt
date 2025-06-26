@@ -121,7 +121,7 @@ fun Cart(onBackClick: () -> Unit) {
 
 
     val filteredList = offerList.filter {
-        it.offer.title.contains(search, ignoreCase = true)
+        ( it.offer.title?:"").contains(search, ignoreCase = true)
     }
 
     Scaffold(

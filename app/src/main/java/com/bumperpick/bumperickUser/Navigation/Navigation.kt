@@ -88,13 +88,20 @@ fun AppNavigation() {
             route=Screen.Offer_subcat.route,
             arguments = listOf(navArgument(Screen.SUB_CAT_ID){
                 type=NavType.StringType
-            }, navArgument(Screen.SUB_CAT_NAME){
+            },
+                navArgument(Screen.SUB_CAT_NAME){
                 type=NavType.StringType
-            })
+            },
+                    navArgument(Screen.CAT_ID){
+                type=NavType.StringType
+            },
+
+                )
         ){backStackEntry->
             val sub_catid = backStackEntry.arguments?.getString(Screen.SUB_CAT_ID) ?: ""
+            val catid = backStackEntry.arguments?.getString(Screen.CAT_ID) ?: ""
             val sub_catname = backStackEntry.arguments?.getString(Screen.SUB_CAT_NAME) ?: ""
-            offer_subcat(subcatId = sub_catid, subcatName =sub_catname,
+            offer_subcat(subcatId = sub_catid, subcatName =sub_catname,cat_id=catid,
                 onBackClick = {navController.popBackStack()},
                 homeclick = {
                     when(it){
@@ -125,12 +132,12 @@ fun AppNavigation() {
                     }
 
                     HomeClick.SearchClick -> {
-                   //     navController.navigate(Screen.Search.route)
+                       navController.navigate(Screen.Search.route)
                     }
                 }
             },
-                open_subID = {sub_cat_id, sub_cat_name ->
-                    navController.navigate(Screen.Offer_subcat.withsubcatId(sub_cat_id,sub_cat_name))
+                open_subID = {sub_cat_id, sub_cat_name,cat_id ->
+                    navController.navigate(Screen.Offer_subcat.withsubcatId(sub_cat_id,sub_cat_name,cat_id))
                 },
                 onAccountClick = {
                     when(it){

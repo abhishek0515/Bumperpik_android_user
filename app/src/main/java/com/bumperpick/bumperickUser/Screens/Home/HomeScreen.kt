@@ -58,7 +58,7 @@ import com.bumperpick.bumperickUser.Screens.Component.NavigationItem
 
 
 @Composable
-fun Homepage(onHomeClick: (HomeClick)->Unit, open_subID:(sub_cat_id:String,sub_cat_name:String)->Unit,onAccountClick:(AccountClick)->Unit){
+fun Homepage(onHomeClick: (HomeClick)->Unit, open_subID:(sub_cat_id:String,sub_cat_name:String,cat_id:String)->Unit,onAccountClick:(AccountClick)->Unit){
 
     HomeScreen(onHomeClick,onAccountClick,open_subID)
 
@@ -86,7 +86,7 @@ if (locationPermission != PackageManager.PERMISSION_GRANTED) {
 }
 
 @Composable
-fun HomeScreen(onHomeClick: (HomeClick)->Unit,onAccountClick: (AccountClick) -> Unit,open_subID:(sub_cat_id:String,sub_cat_name:String)->Unit,) {
+fun HomeScreen(onHomeClick: (HomeClick)->Unit,onAccountClick: (AccountClick) -> Unit,open_subID:(sub_cat_id:String,sub_cat_name:String,cat_id:String)->Unit,) {
     var selectedTab by remember { mutableStateOf(0) }
 
     Column(
