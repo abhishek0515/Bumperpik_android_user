@@ -1,9 +1,12 @@
 package com.bumperpick.bumperpickvendor.API.Provider
 
+import DataStoreManager
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
+import com.bumperpick.bumperickUser.API.New_model.refreshtoken
+import kotlinx.coroutines.flow.firstOrNull
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -17,20 +20,58 @@ sealed class ApiResult<out T> {
     data class Error(val message: String, val code: Int? = null) : ApiResult<Nothing>()
 }
 
-suspend fun <T> safeApiCall(api: suspend () -> Response<T>): ApiResult<T> {
+suspend fun <T> safeApiCall(
+    context: Context,
+    api: suspend () -> Response<T>,
+    refreshTokenApi: suspend (String) -> Response<refreshtoken>,
+    dataStoreManager: DataStoreManager
+): ApiResult<T> {
     return try {
         val response = api()
-        Log.d("RESPONES",response.toString())
+        Log.d("RESPONSE", response.toString())
+
         if (response.isSuccessful) {
             response.body()?.let { ApiResult.Success(it) }
                 ?: ApiResult.Error("Empty body", response.code())
         } else {
-            ApiResult.Error("Error: ${response.message()}", response.code())
+            // Check for unauthenticated
+            if (response.code() == 401 || response.message().contains("Unauthenticated", true)) {
+                // Get current token
+                val currentToken = dataStoreManager.getToken.firstOrNull()
+                if (currentToken != null) {
+                    val refreshResponse = refreshTokenApi(currentToken)
+
+                    if (refreshResponse.isSuccessful) {
+                        val newToken = refreshResponse.body()?.meta?.token
+                        val userId = refreshResponse.body()?.data?.customer_id.toString() // adjust if needed
+
+                        if (!newToken.isNullOrEmpty()) {
+                            // Save new token
+                            dataStoreManager.saveUserId(newToken, userId)
+
+                            // Retry original API with new token
+                            val retryResponse = api()
+                            return if (retryResponse.isSuccessful) {
+                                retryResponse.body()?.let { ApiResult.Success(it) }
+                                    ?: ApiResult.Error("Empty body after retry", retryResponse.code())
+                            } else {
+                                ApiResult.Error("Retry failed: ${retryResponse.message()}", retryResponse.code())
+                            }
+                        }
+                    }
+                    return ApiResult.Error("Token refresh failed: ${refreshResponse.message()}", refreshResponse.code())
+                } else {
+                    return ApiResult.Error("No token found for refresh")
+                }
+            } else {
+                ApiResult.Error("Error: ${response.message()}", response.code())
+            }
         }
     } catch (e: Exception) {
         ApiResult.Error("Exception: ${e.localizedMessage ?: "Unknown error"}")
     }
 }
+
 fun File.toMultipartPart(
     partName: String = "file",
     contentType: String = "application/octet-stream"

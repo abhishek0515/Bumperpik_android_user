@@ -44,6 +44,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.bumperpick.bumperickUser.API.New_model.Category
 import com.bumperpick.bumperickUser.R
 import com.bumperpick.bumperickUser.Screens.Component.AutoImageSlider
 import com.bumperpick.bumperickUser.Screens.Component.CategoryItem
@@ -54,6 +55,7 @@ import com.bumperpick.bumperickUser.Screens.Component.LocationCard
 import com.bumperpick.bumperickUser.Screens.Component.MarketingOption
 import com.bumperpick.bumperickUser.Screens.Component.Media
 import com.bumperpick.bumperickUser.Screens.Component.OfferValidation
+import com.bumperpick.bumperickUser.Screens.Component.category
 import com.bumperpick.bumperickUser.Screens.Component.categorylist
 import com.bumperpick.bumperickUser.ui.theme.BtnColor
 import com.bumperpick.bumperickUser.ui.theme.satoshi
@@ -64,10 +66,13 @@ sealed class HomeClick(){
     object CartClick:HomeClick()
     object LocationClick:HomeClick()
     object SearchClick:HomeClick()
+    data class CategoryClick(val cat:Category):HomeClick()
 
 }
 @Composable
-fun home(homeclick:(HomeClick)->Unit, viewmodel: HomePageViewmodel= koinViewModel()){
+fun home(homeclick:(HomeClick)->Unit,
+         gotoEvent:()->Unit,
+         viewmodel: HomePageViewmodel= koinViewModel()){
     val offerDetails = viewmodel.offer_uiState.collectAsState().value
     val categoryDetails = viewmodel.categories_uiState.collectAsState().value
 
@@ -130,7 +135,9 @@ fun home(homeclick:(HomeClick)->Unit, viewmodel: HomePageViewmodel= koinViewMode
                     val categorylist = categoryDetails.data
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         items(categorylist) {
-                            CategoryItem(it)
+                            CategoryItem(it){category->
+                                homeclick(HomeClick.CategoryClick(category))
+                            }
                         }
                     }
                 }
@@ -140,7 +147,7 @@ fun home(homeclick:(HomeClick)->Unit, viewmodel: HomePageViewmodel= koinViewMode
 
         }
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(10.dp))
         LazyColumn {
             item{
                 Card(
@@ -152,6 +159,9 @@ fun home(homeclick:(HomeClick)->Unit, viewmodel: HomePageViewmodel= koinViewMode
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp, vertical = 8.dp)
+                        .clickable {
+                            gotoEvent()
+                        }
                 ) {
                     Row(
                         modifier = Modifier
@@ -172,7 +182,7 @@ fun home(homeclick:(HomeClick)->Unit, viewmodel: HomePageViewmodel= koinViewMode
                             )
 
                             Text(
-                                text = "Explore exciting events near you",
+                                text = "Explore exciting Campaign near you",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color.Black,

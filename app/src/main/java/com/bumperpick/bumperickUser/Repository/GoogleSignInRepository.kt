@@ -15,15 +15,18 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-
-class GoogleSignInRepository(private val context: Context,val apiService: ApiService) {
+class GoogleSignInRepository(
+    private val context: Context,
+    private val apiService: ApiService,
+    private val dataStoreManager: DataStoreManager // <-- Injected
+) {
     private val _signInState = MutableStateFlow<GoogleSignInState>(GoogleSignInState.Idle)
     val signInState: StateFlow<GoogleSignInState> = _signInState.asStateFlow()
 
     private fun getGoogleSignInClient(serverClientId: String): GoogleSignInClient {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(serverClientId)
-            .requestEmail() // Explicitly request email
+            .requestEmail()
             .requestProfile()
             .build()
         return GoogleSignIn.getClient(context, gso)
@@ -36,7 +39,6 @@ class GoogleSignInRepository(private val context: Context,val apiService: ApiSer
     suspend fun processSignInResult(data: Intent?): kotlin.Result<GoogleUserData> {
         return try {
             _signInState.value = GoogleSignInState.Loading
-            val dataStoreManager =DataStoreManager(context)
 
             if (data == null) {
                 throw Exception("Sign-in intent data is null")
@@ -48,43 +50,51 @@ class GoogleSignInRepository(private val context: Context,val apiService: ApiSer
             val userData = GoogleUserData(
                 userId = account.id ?: "",
                 displayName = account.displayName,
-                email = account.email, // Email is directly available
+                email = account.email,
                 profilePictureUrl = account.photoUrl?.toString(),
                 idToken = account.idToken ?: ""
             )
 
             Log.d("GoogleSignIn", "Sign-in successful: email=${account.email}")
 
-            val result= safeApiCall { apiService.auth_google(account.email!!) }
-            when (result){
+            val result = safeApiCall(
+                context = context,
+                api = { apiService.auth_google(account.email!!) },
+                refreshTokenApi = { token -> apiService.refresh_token(token) },
+                dataStoreManager = dataStoreManager
+            )
+
+            when (result) {
                 is ApiResult.Error -> {
                     Log.e("GoogleSignIn", "Sign-in failed: ${result.message}")
                     _signInState.value = GoogleSignInState.Error("Sign-in failed: ${result.message}")
-
+                    return kotlin.Result.failure(Exception(result.message))
                 }
+
                 is ApiResult.Success -> {
-                    dataStoreManager.saveUserId(result.data.meta.token,result.data.data.customer_id.toString())
+                    dataStoreManager.saveUserId(
+                        result.data.meta.token,
+                        result.data.data.customer_id.toString()
+                    )
                     _signInState.value = GoogleSignInState.Success(userData)
+                    return kotlin.Result.success(userData)
                 }
             }
-
-
-            kotlin.Result.success(userData)
 
         } catch (e: ApiException) {
             Log.e("GoogleSignIn", "Sign-in failed: ${e.message}, statusCode: ${e.statusCode}")
             _signInState.value = GoogleSignInState.Error("Sign-in failed: ${e.message}")
-            kotlin.Result.failure(e)
+            return kotlin.Result.failure(e)
         } catch (e: Exception) {
             Log.e("GoogleSignIn", "Unknown error: ${e.message}")
             _signInState.value = GoogleSignInState.Error("Unknown error: ${e.message}")
-            kotlin.Result.failure(e)
+            return kotlin.Result.failure(e)
         }
     }
 
-    fun signOut() {
+    fun signOut(serverClientId: String) {
         Log.d("GoogleSignIn", "Signing out")
-        val googleSignInClient = getGoogleSignInClient("")
+        val googleSignInClient = getGoogleSignInClient(serverClientId)
         googleSignInClient.signOut()
         _signInState.value = GoogleSignInState.Idle
     }

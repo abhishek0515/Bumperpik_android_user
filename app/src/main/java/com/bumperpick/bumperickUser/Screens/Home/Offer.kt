@@ -368,7 +368,7 @@ private fun CategoriesContent(
 }
 
 @Composable
-private fun SubCategoriesContent(
+fun SubCategoriesContent(
     subCategoriesState: UiState<List<sub_categories>>,
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.bumperpick.bumperickUser.API.New_model.Category
 import com.bumperpick.bumperickUser.API.New_model.CustomerOfferDetail
 import com.bumperpick.bumperickUser.API.New_model.Offer
+import com.bumperpick.bumperickUser.API.New_model.OfferHistoryModel
 import com.bumperpick.bumperickUser.API.New_model.cartDetails
 import com.bumperpick.bumperickUser.Repository.OfferRepository
 import com.bumperpick.bumperickUser.Repository.Result
@@ -33,6 +34,9 @@ class HomePageViewmodel(val offerRepository: OfferRepository):ViewModel() {
 
     private val _cart_uiState = MutableStateFlow<UiState<cartDetails>>(UiState.Empty)
     val cart_uiState: StateFlow<UiState<cartDetails>> = _cart_uiState
+
+   private val _history_uiState = MutableStateFlow<UiState<OfferHistoryModel>>(UiState.Empty)
+    val history_uiState: StateFlow<UiState<OfferHistoryModel>> = _history_uiState
 
     private val _delete_cart_uiState = MutableStateFlow<UiState<String>>(UiState.Empty)
     val delete_cart_uiState: StateFlow<UiState<String>> = _delete_cart_uiState
@@ -103,12 +107,23 @@ class HomePageViewmodel(val offerRepository: OfferRepository):ViewModel() {
                 is Result.Error -> {
                     _cart_uiState.value = UiState.Error(result.message)
                 }
+
                 Result.Loading -> _cart_uiState.value = UiState.Loading
                 is Result.Success -> _cart_uiState.value = UiState.Success(result.data)
             }
         }
-
-
+    }
+        fun getOffer_history() {
+        viewModelScope.launch {
+            val result = offerRepository.getOfferHisotry()
+            when (result) {
+                is Result.Error -> {
+                    _history_uiState.value = UiState.Error(result.message)
+                }
+                Result.Loading -> _history_uiState.value = UiState.Loading
+                is Result.Success -> _history_uiState.value = UiState.Success(result.data)
+            }
+        }
     }
     private val _userId = MutableStateFlow("")
     val userId: StateFlow<String> = _userId

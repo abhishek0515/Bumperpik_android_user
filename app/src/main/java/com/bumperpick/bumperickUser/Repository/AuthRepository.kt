@@ -6,6 +6,7 @@ import com.bumperpick.bumperickUser.API.New_model.profile_model
 import java.io.File
 
 interface AuthRepository {
+
     suspend fun checkAlreadyLogin(): Result<Boolean>
     suspend fun login(mobileNumber: String): Result<String>
     suspend fun sendOtp(mobileNumber: String): Result<String>

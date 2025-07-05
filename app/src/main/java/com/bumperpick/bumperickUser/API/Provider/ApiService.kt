@@ -1,11 +1,16 @@
 package com.bumperpick.bumperpickvendor.API.Provider
 
+import com.bumperpick.bumperickUser.API.New_model.CustomerEventModel
 import com.bumperpick.bumperickUser.API.New_model.CustomerOffer
 import com.bumperpick.bumperickUser.API.New_model.CustomerOfferDetail
+import com.bumperpick.bumperickUser.API.New_model.EventModel
+import com.bumperpick.bumperickUser.API.New_model.EventRegisterModel
 import com.bumperpick.bumperickUser.API.New_model.LoginModel
+import com.bumperpick.bumperickUser.API.New_model.OfferHistoryModel
 import com.bumperpick.bumperickUser.API.New_model.cartDetails
 import com.bumperpick.bumperickUser.API.New_model.deletemodel
 import com.bumperpick.bumperickUser.API.New_model.profile_model
+import com.bumperpick.bumperickUser.API.New_model.refreshtoken
 import com.bumperpick.bumperpickvendor.API.Model.Category_Model
 import com.bumperpick.bumperpickvendor.API.Model.Subscription
 import com.bumperpick.bumperpickvendor.API.Model.Vendor_Register_Model
@@ -17,10 +22,12 @@ import com.google.android.gms.common.internal.safeparcel.SafeParcelable.Param
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FieldMap
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
+import retrofit2.http.Headers
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
@@ -79,6 +86,10 @@ interface ApiService {
    @GET("api/customer/cart-offers")
    suspend fun cart_data(@Query("token")token: String):Response<cartDetails>
 
+   @GET("api/customer/offers-history")
+   suspend fun offer_history(@Query("token")token: String):Response<OfferHistoryModel>
+
+
    @GET("api/customer/cart-offers/delete/{id}")
    suspend fun deleteCart(@Path("id")id:String,@Query("token")token: String):Response<deletemodel>
 
@@ -89,4 +100,30 @@ interface ApiService {
    @POST("api/customer/profile/update")
    suspend fun update_profile(  @PartMap data: Map<String, @JvmSuppressWildcards RequestBody>,
                                 @Part image: MultipartBody.Part?,):Response<profile_model>
+
+   @GET("api/customer/refresh-token")
+   suspend fun refresh_token(@Query("token")token:String):Response<refreshtoken>
+
+   @GET("api/customer/campaigns")
+   suspend fun customer_campaign(@Query("token")token: String):Response<EventModel>
+
+
+    @Headers("Content-Type: application/json")
+    @POST("api/customer/campaign-registers/store")
+    suspend fun campaign_register(
+        @Body request: EventRegisterRequest
+    ): Response<EventRegisterModel>
+
+
+    @GET("api/customer/events")
+    suspend fun get_event(
+        @Query("token") token: String
+    ):Response<CustomerEventModel>
 }
+data class EventRegisterRequest(
+    val token: String,
+    val campaign_id: String,
+    val name: String,
+    val email: String,
+    val phone: String
+)

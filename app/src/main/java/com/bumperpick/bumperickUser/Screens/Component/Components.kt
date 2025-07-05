@@ -1,5 +1,6 @@
 package com.bumperpick.bumperickUser.Screens.Component
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
 import android.widget.Toast
@@ -605,7 +606,7 @@ val categorylist= listOf(
 
 
 @Composable
-fun CategoryItem(category: Category) {
+fun CategoryItem(category: Category,onClick: (Category) -> Unit) {
     Log.d("category", category.image_url ?: "")
 
     Card(
@@ -615,6 +616,9 @@ fun CategoryItem(category: Category) {
         modifier = Modifier
             .height(110.dp)
             .width(90.dp)
+            .clickable {
+                onClick(category)
+            }
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             AsyncImage(
@@ -1024,7 +1028,7 @@ fun HomeOfferView(offerModel: Offer, offerClick:(String)->Unit  ){
 
 }
 @Composable
-fun CartOfferView(offerModel: DataXX, openQr: (id: String) -> Unit,deleteCart:(String)->Unit) {
+fun CartOfferView(offerModel: DataXX, openQr: (id: String) -> Unit,deleteCart:(String)->Unit,showOpenQrBtn:Boolean=true) {
 
     val context= LocalContext.current
     var loading by remember { mutableStateOf(false) }
@@ -1055,32 +1059,34 @@ fun CartOfferView(offerModel: DataXX, openQr: (id: String) -> Unit,deleteCart:(S
 
                     // Image slider
                     AutoImageSlider(imageUrls = media)
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(24.dp)
-                            .background(
-                                color = Color.Black.copy(0.1f),
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            .border(
-                                0.5.dp,
-                                Color.White,
-                                shape = RoundedCornerShape(8.dp)
-                            ),
-                    ) {
-                        Icon(
-                            Icons.Outlined.Delete,
-                            contentDescription = "Delete offer",
+                    if(showOpenQrBtn) {
+                        Box(
                             modifier = Modifier
-                                .align(Alignment.Center)
-                                .clickable {
-                                    deleteCart(offerModel.id.toString())
-                                }
-                                .padding(4.dp)
-                                .size(30.dp),
-                            tint = Color.White
-                        )
+                                .align(Alignment.TopEnd)
+                                .padding(24.dp)
+                                .background(
+                                    color = Color.Black.copy(0.1f),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .border(
+                                    0.5.dp,
+                                    Color.White,
+                                    shape = RoundedCornerShape(8.dp)
+                                ),
+                        ) {
+                            Icon(
+                                Icons.Outlined.Delete,
+                                contentDescription = "Delete offer",
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .clickable {
+                                        deleteCart(offerModel.id.toString())
+                                    }
+                                    .padding(4.dp)
+                                    .size(30.dp),
+                                tint = Color.White
+                            )
+                        }
                     }
                     // Quantity badge
                     Box(
@@ -1161,14 +1167,15 @@ fun CartOfferView(offerModel: DataXX, openQr: (id: String) -> Unit,deleteCart:(S
                         }
                     }
                 }
-
-                ButtonView(
-                    text = "Open QR",
-                    color = BtnColor.copy(alpha = 0.2f),
-                    textColor = BtnColor,
-                    modifier = Modifier.padding(vertical = 0.dp)
-                ) {
-                    openQr(offer.id.toString())
+                if(showOpenQrBtn) {
+                    ButtonView(
+                        text = "Open QR",
+                        color = BtnColor.copy(alpha = 0.2f),
+                        textColor = BtnColor,
+                        modifier = Modifier.padding(vertical = 0.dp)
+                    ) {
+                        openQr(offer.id.toString())
+                    }
                 }
             }
         }
@@ -1388,4 +1395,50 @@ fun SearchCard(
         }
     }
 }
+
+@Composable
+fun SignOutDialog(
+
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = {
+                Text(
+                    text = "Sign Out",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "Are you sure you want to sign out?",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onConfirm()
+                        onDismiss()
+                    }
+                ) {
+                    Text(
+                        text = "Sign Out",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("Cancel")
+                }
+            }
+        )
+
+}
+
+
 

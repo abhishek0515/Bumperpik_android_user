@@ -43,7 +43,7 @@ class GoogleSignInViewModel(private val googleSignInRepository: GoogleSignInRepo
     }
 
     fun signOut() {
-        googleSignInRepository.signOut()
+       // googleSignInRepository.signOut()
         _uiState.update { it.copy(userData = null, error = "", isLoading = false) }
     }
 

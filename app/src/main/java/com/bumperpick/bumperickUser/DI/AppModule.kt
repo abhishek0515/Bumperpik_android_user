@@ -4,9 +4,13 @@ package com.bumperpick.bumperickUser.DI
 import DataStoreManager
 import com.bumperpick.bumperickUser.Repository.AuthRepository
 import com.bumperpick.bumperickUser.Repository.AuthRepositoryImpl
+import com.bumperpick.bumperickUser.Repository.EventRepositoryImpl
+import com.bumperpick.bumperickUser.Repository.Event_campaign_Repository
 import com.bumperpick.bumperickUser.Repository.GoogleSignInRepository
 import com.bumperpick.bumperickUser.Repository.OfferRepository
 import com.bumperpick.bumperickUser.Repository.OfferRepositoryImpl
+import com.bumperpick.bumperickUser.Screens.Campaign.EventScreenViewmodel
+import com.bumperpick.bumperickUser.Screens.Event.EventViewmodel
 import com.bumperpick.bumperickUser.Screens.Home.AccountViewmodel
 import com.bumperpick.bumperickUser.Screens.Home.CategoryViewModel
 import com.bumperpick.bumperickUser.Screens.Home.HomePageViewmodel
@@ -15,7 +19,6 @@ import com.bumperpick.bumperickUser.Screens.Login.LoginViewmodel
 import com.bumperpick.bumperickUser.Screens.OTP.OtpViewModel
 import com.bumperpick.bumperickUser.Screens.Splash.SplashViewmodel
 import com.bumperpick.bumperpickvendor.API.Provider.ApiService
-import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 import org.koin.androidx.viewmodel.dsl.viewModel
 import retrofit2.Retrofit
@@ -34,9 +37,10 @@ val appModule = module {
     single { DataStoreManager(get()) }
 
     // Repository
-    single<AuthRepository> { AuthRepositoryImpl(get(),get()) }
-    single { GoogleSignInRepository(get(),get()) }
-    single <OfferRepository>{ OfferRepositoryImpl(get(),get()) }
+    single<AuthRepository> { AuthRepositoryImpl(get(),get(),get()) }
+    single { GoogleSignInRepository(get(),get(),get()) }
+    single <OfferRepository>{ OfferRepositoryImpl(get(),get(),get()) }
+    single <Event_campaign_Repository>{ EventRepositoryImpl(get(),get(),get()) }
     // ViewModel
     viewModel { SplashViewmodel(get()) }
     viewModel { LoginViewmodel(get()) }
@@ -45,6 +49,8 @@ val appModule = module {
     viewModel { HomePageViewmodel(get()) }
     viewModel { CategoryViewModel(get()) }
     viewModel { AccountViewmodel(get(),get()) }
+    viewModel { EventScreenViewmodel(get()) }
+    viewModel { EventViewmodel(get()) }
 
 
 }

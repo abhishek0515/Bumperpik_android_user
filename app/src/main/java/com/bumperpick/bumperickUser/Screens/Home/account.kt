@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.bumperpick.bumperickUser.R
 import com.bumperpick.bumperickUser.Screens.Component.ButtonView
+import com.bumperpick.bumperickUser.Screens.Component.SignOutDialog
 import com.bumperpick.bumperickUser.ui.theme.BtnColor
 import com.bumperpick.bumperickUser.ui.theme.grey
 import com.bumperpick.bumperickUser.ui.theme.satoshi_regular
@@ -69,7 +70,7 @@ fun shareReferral(context: Context) {
 }
 
 @Composable
-fun ReferralSettingsCard() {
+fun ReferralSettingsCard(onClick:(AccountClick)->Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -116,7 +117,7 @@ fun ReferralSettingsCard() {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { /* Handle click */ }
+                    .clickable { onClick(AccountClick.OfferHistory)}
                     .padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -225,10 +226,13 @@ fun ToggleButton() {
 sealed class AccountClick(){
     object Logout:AccountClick()
     object EditAccount:AccountClick()
+    object OfferHistory:AccountClick()
+    object EventClick:AccountClick()
 }
 @Composable
 fun AccountScreen(accountclick:(AccountClick)->Unit,viewmodel: AccountViewmodel= koinViewModel()){
     val profile =viewmodel.profileState.collectAsState().value
+    var show_signoutDialog by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         viewmodel.getProfile()
     }
@@ -239,6 +243,14 @@ fun AccountScreen(accountclick:(AccountClick)->Unit,viewmodel: AccountViewmodel=
 
     if (isLogout) {
      accountclick(AccountClick.Logout)
+    }
+    if (show_signoutDialog){
+        SignOutDialog(onConfirm = {
+            viewmodel.logout()
+        }, onDismiss = {
+            show_signoutDialog=false
+        }
+        )
     }
 
 
@@ -320,7 +332,7 @@ fun AccountScreen(accountclick:(AccountClick)->Unit,viewmodel: AccountViewmodel=
 
 
 
-            ReferralSettingsCard()
+            ReferralSettingsCard(onClick = accountclick)
 
 
             Column (modifier = Modifier.fillMaxWidth().background(Color.White)){
@@ -359,9 +371,25 @@ fun AccountScreen(accountclick:(AccountClick)->Unit,viewmodel: AccountViewmodel=
                 }
 
             }
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
             Box (modifier = Modifier.fillMaxWidth().clickable {
-                viewmodel.logout()
+                accountclick(AccountClick.EventClick)
+            }.background(Color.White), )
+            {
+                Row (modifier = Modifier.padding(12.dp).align(Alignment.CenterStart)){
+                    Image(painter = painterResource(R.drawable.star_circle_svgrepo_com), contentDescription = null, modifier = Modifier.size(30.dp),)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(text = "Event", color = Color.Black, fontSize = 16.sp,)
+                }
+
+                Image(imageVector = Icons.Outlined.KeyboardArrowRight, contentDescription = null, modifier = Modifier.size(24.dp).align(Alignment.CenterEnd),)
+
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Box (modifier = Modifier.fillMaxWidth().clickable {
+              show_signoutDialog=true
 
             }.background(Color.White), ){
                 Row (modifier = Modifier.padding(12.dp).align(Alignment.CenterStart)){

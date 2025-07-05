@@ -26,6 +26,9 @@ sealed class Screen(val route: String) {
         const val SUB_CAT_ID="sub_cat_id"
         const val SUB_CAT_NAME="sub_cat_name"
         const val CAT_ID="cat_id"
+        const val CAT_NAME="cat_name"
+        const val EVENT_NAME="event_name"
+        const val EVENT_ID="event_id"
     }
     object EditProfile:Screen("edit_profile")
     object Search:Screen("search")
@@ -35,4 +38,29 @@ sealed class Screen(val route: String) {
             return "offer_subcat/$subcat_id/$subCatName/$catId"
         }
     }
+    object SubCatPage: Screen("subcatpage/{$CAT_NAME}/{$CAT_ID}") {
+        fun witcatId(cat_id: String, cat_name: String): String {
+            return "subcatpage/$cat_name/$cat_id"
+        }
+    }
+
+    object EventScreen:Screen("eventScreen")
+
+    object EventForm:Screen("event_form/{$EVENT_NAME}/{$EVENT_ID}"){
+        fun withid(eventName:String,eventId:String):String{
+            return "event_form/$eventName/$eventId"
+        }
+    }
+
+    object OfferHistoryScreen:Screen("offerHistoryScreen")
+
+    object EventScreen2:Screen("eventScreen2")
+
+    object EventScreenDetail:Screen("eventScreenDetail/{$EVENT_ID}"){
+        fun withid(eventId:Int):String{
+            return "eventScreenDetail/$eventId"
+        }
+    }
+
+
 }

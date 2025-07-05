@@ -1,12 +1,19 @@
 package com.bumperpick.bumperickUser.Navigation
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.bumperpick.bumperickUser.Screens.Campaign.EventForm
+import com.bumperpick.bumperickUser.Screens.Campaign.EventScreen
 import com.bumperpick.bumperickUser.Screens.EditProfile.EditProfile
+import com.bumperpick.bumperickUser.Screens.Event.EventDetailScreen
+import com.bumperpick.bumperickUser.Screens.Event.EventScreenMain
 import com.bumperpick.bumperickUser.Screens.Home.AccountClick
 import com.bumperpick.bumperickUser.Screens.Home.Cart
 import com.bumperpick.bumperickUser.Screens.Home.ChooseLocation
@@ -14,15 +21,22 @@ import com.bumperpick.bumperickUser.Screens.Home.HomeClick
 import com.bumperpick.bumperickUser.Screens.Home.Homepage
 import com.bumperpick.bumperickUser.Screens.Home.OfferDetails
 import com.bumperpick.bumperickUser.Screens.Home.OfferSearchPage
+import com.bumperpick.bumperickUser.Screens.Home.SubCategoryPage
 import com.bumperpick.bumperickUser.Screens.Home.offer_subcat
 import com.bumperpick.bumperickUser.Screens.Login.Login
 import com.bumperpick.bumperickUser.Screens.OTP.OtpScreen
 import com.bumperpick.bumperickUser.Screens.Splash.Splash
 import com.bumperpick.bumperickUser.Screens.StartScreen.StartScreen
+import com.bumperpick.bumperpickvendor.Screens.OfferhistoryScreen.offerhistoryScreen
+fun show_toast(message:String,context: Context){
+    Toast.makeText(context,message,Toast.LENGTH_SHORT).show()
+}
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
+    val context= LocalContext.current
+
 
     NavHost(navController = navController, startDestination = Screen.Splash.route) {
 
@@ -109,12 +123,15 @@ fun AppNavigation() {
                         HomeClick.LocationClick -> {}
                         is HomeClick.OfferClick -> { navController.navigate(Screen.OfferDetail.withOfferId(it.offerId))}
                         HomeClick.SearchClick -> {}
+                        is HomeClick.CategoryClick -> TODO()
                     }
                 }
 
 
             )
         }
+
+
 
         // HomePage
         composable(route = Screen.HomePage.route) {
@@ -134,10 +151,19 @@ fun AppNavigation() {
                     HomeClick.SearchClick -> {
                        navController.navigate(Screen.Search.route)
                     }
+
+                    is HomeClick.CategoryClick -> {
+                        val category=it.cat
+                        val categoryIdInt = category.id.toString()
+                        navController.navigate(Screen.SubCatPage.witcatId(categoryIdInt, category.name))
+                    }
                 }
             },
                 open_subID = {sub_cat_id, sub_cat_name,cat_id ->
                     navController.navigate(Screen.Offer_subcat.withsubcatId(sub_cat_id,sub_cat_name,cat_id))
+                },
+                onEventClick = {
+                    navController.navigate(Screen.EventScreen.route)
                 },
                 onAccountClick = {
                     when(it){
@@ -149,6 +175,14 @@ fun AppNavigation() {
 
                         AccountClick.EditAccount -> {
                             navController.navigate(Screen.EditProfile.route)
+                        }
+
+                        AccountClick.OfferHistory -> {
+                            navController.navigate(Screen.OfferHistoryScreen.route)
+                        }
+
+                        AccountClick.EventClick -> {
+                            navController.navigate(Screen.EventScreen2.route)
                         }
                     }
                 }
@@ -193,9 +227,96 @@ fun AppNavigation() {
                         navController.navigate(Screen.OfferDetail.withOfferId(it.offerId))
                     }
 
-                    HomeClick.SearchClick ->{}
+                    HomeClick.SearchClick ->{
+
+                    }
+                    is HomeClick.CategoryClick -> {
+
+                    }
                 }
             })
         }
+
+        composable(
+            route = Screen.SubCatPage.route,
+            arguments = listOf(
+                navArgument(Screen.CAT_ID) {
+                    type = NavType.StringType
+                },
+                navArgument(Screen.CAT_NAME) {
+                    type = NavType.StringType
+                }
+            )
+        ) { navBackStackEntry ->
+            val catid = navBackStackEntry.arguments?.getString(Screen.CAT_ID) ?: ""
+            val catname = navBackStackEntry.arguments?.getString(Screen.CAT_NAME) ?: ""
+
+            SubCategoryPage(
+                cat_id = catid.toInt(),
+                selectedCategoryName = catname,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                open_subID = { sub_cat_id, sub_cat_name, cat_id ->
+                    navController.navigate(
+                        Screen.Offer_subcat.withsubcatId(sub_cat_id, sub_cat_name, cat_id)
+                    )
+                }
+            )
+        }
+
+
+        composable(route=Screen.EventScreen.route){
+            EventScreen(onBackClick = {
+                navController.popBackStack()
+            },
+                gotoEventRegister = {
+                    navController.navigate(Screen.EventForm.withid(eventId = it.id.toString(), eventName = it.title))
+                })
+        }
+        composable(route=Screen.EventForm.route,
+            arguments = listOf(navArgument(Screen.EVENT_NAME){
+                type=NavType.StringType
+            },
+                navArgument(Screen.EVENT_ID){
+                    type=NavType.StringType
+                }
+            )
+        ){ navBackStackEntry ->
+            val eventname=navBackStackEntry.arguments?.getString(Screen.EVENT_NAME)?:""
+            val eventId=navBackStackEntry.arguments?.getString(Screen.EVENT_ID)?:""
+            EventForm(eventName = eventname, eventId = eventId, onBackClick = {
+                navController.popBackStack()
+            }, onRegistrationSuccess = {
+                show_toast("Event Registered Successfully",context)
+                navController.popBackStack()
+            })
+
+        }
+
+        composable(route=Screen.OfferHistoryScreen.route){
+            offerhistoryScreen(onBackClick = {
+                navController.popBackStack()
+            })
+        }
+        composable(route=Screen.EventScreen2.route){
+            EventScreenMain(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                gotoEventDetail = {
+                    navController.navigate(Screen.EventScreenDetail.withid(it))
+                }
+            )
+        }
+        composable(route=Screen.EventScreenDetail.route,
+            arguments = listOf(navArgument(Screen.EVENT_ID, builder = {type=NavType.StringType}
+        ))){navBackStackEntry->
+            val eventId=navBackStackEntry.arguments?.getString(Screen.EVENT_ID)?:""
+           EventDetailScreen(onBackClick = {navController.popBackStack()},eventId.toInt())
+
+
+            }
+
     }
 }
