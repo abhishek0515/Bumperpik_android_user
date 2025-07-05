@@ -353,7 +353,7 @@ fun EventInfoCard(
                 Text(
                     text = text,
                     fontFamily = satoshi_regular,
-                    color = BtnColor
+                    color = Color.Black
                 )
             }
         }
@@ -380,7 +380,7 @@ fun LiveVideoScreen(
                 isYouTube = true
             )
         }
-
+        Spacer(modifier = Modifier.height(12.dp))
         // Facebook Video Card
         if (facebookVideoUrl.isNotEmpty()) {
             VideoCard(
@@ -413,7 +413,7 @@ fun VideoCard(
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
             modifier = Modifier
