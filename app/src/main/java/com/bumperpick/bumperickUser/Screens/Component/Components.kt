@@ -669,6 +669,7 @@ private fun ImageSliderItem(
 @Composable
 fun AutoImageSlider(
     imageUrls: List<String>,
+    height:Dp=150.dp,
     modifier: Modifier = Modifier,
     autoSlideInterval: Long = 5000L, // 5 seconds
     slideAnimationDuration: Int = 800 // milliseconds
@@ -702,7 +703,7 @@ fun AutoImageSlider(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.White)
-                .height(175.dp),
+                .height(height),
             pageSpacing = 8.dp
         ) { page ->
             ImageSliderItem(
@@ -921,7 +922,11 @@ fun HomeOfferView(offerModel: Offer, offerClick:(String)->Unit  ){
     Card (
         modifier = Modifier
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable { offerClick(offerModel.id.toString()) },
+            .clickable {
+                if(!offerModel.is_ads){
+                offerClick(offerModel.id.toString())
+                }
+                       },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -932,23 +937,30 @@ fun HomeOfferView(offerModel: Offer, offerClick:(String)->Unit  ){
                 val imagelist=offerModel.media.map {
                     it.url
                 }
-                AutoImageSlider(imageUrls = imagelist)
-                Box(
-                    modifier = Modifier
+                AutoImageSlider(imageUrls = imagelist, height = 180.dp)
+                if(!offerModel.is_ads) {
+                    Box(
+                        modifier = Modifier
 
-                        .clip(
-                            RoundedCornerShape(
-                                topStart = 0.dp,
-                                topEnd = 12.dp,
-                                bottomStart = 0.dp,
-                                bottomEnd = 0.dp
+                            .clip(
+                                RoundedCornerShape(
+                                    topStart = 0.dp,
+                                    topEnd = 12.dp,
+                                    bottomStart = 0.dp,
+                                    bottomEnd = 0.dp
+                                )
                             )
+                            .background(Color.White)
+                            .align(Alignment.BottomStart)
+                    ) {
+                        Text(
+                            text = "${offerModel.quantity} left",
+                            color = Color.Black,
+                            fontSize = 14.sp,
+                            modifier = Modifier.padding(vertical = 6.dp, horizontal = 12.dp)
                         )
-                        .background(Color.White)
-                        .align(Alignment.BottomStart)
-                ) {
-                    Text(text = "${offerModel.quantity} left", color = Color.Black, fontSize = 14.sp, modifier = Modifier.padding(vertical = 6.dp, horizontal = 12.dp))
 
+                    }
                 }
 
 
@@ -956,66 +968,65 @@ fun HomeOfferView(offerModel: Offer, offerClick:(String)->Unit  ){
 
             }
 
-
-            Column(modifier = Modifier.padding(12.dp)) {
-                Spacer(Modifier.height(5.dp))
-                Text(
-                    text = offerModel.title,
-                    fontSize = 22.sp,
-                    fontFamily = satoshi_regular,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.Black
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = offerModel.description,
-                    fontSize = 14.sp,
-                    fontFamily = satoshi_regular,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                DottedDivider(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = Color.Gray,
-
+            if(!offerModel.is_ads) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Spacer(Modifier.height(5.dp))
+                    Text(
+                        text = offerModel.title,
+                        fontSize = 22.sp,
+                        fontFamily = satoshi_regular,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.Black
                     )
-                Spacer(modifier = Modifier.height(12.dp))
-                val is_approved=offerModel.approval.equals("accepted")
-                val is_active=offerModel.approval.equals("active")
-                val color = when {
-                    is_approved && is_active -> Color.Green
-                    is_approved && !is_active -> Color.Red
-                    !is_approved -> Color(0xFFFFA500) // Orange color
-                    else -> Color.Gray // fallback (optional)
-                }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = offerModel.description,
+                        fontSize = 14.sp,
+                        fontFamily = satoshi_regular,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    DottedDivider(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = Color.Gray,
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp)
-                ) {
-                    // Discount row (start)
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Image(
-                            painter = painterResource(R.drawable.percentage_red),
-                            contentDescription = "percentage",
-                            modifier = Modifier.size(24.dp)
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = offerModel.discount,
-                            fontSize = 15.sp,
-                            fontFamily = satoshi_regular,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    val is_approved = offerModel.approval.equals("accepted")
+                    val is_active = offerModel.approval.equals("active")
+                    val color = when {
+                        is_approved && is_active -> Color.Green
+                        is_approved && !is_active -> Color.Red
+                        !is_approved -> Color(0xFFFFA500) // Orange color
+                        else -> Color.Gray // fallback (optional)
                     }
 
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp)
+                    ) {
+                        // Discount row (start)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Image(
+                                painter = painterResource(R.drawable.percentage_red),
+                                contentDescription = "percentage",
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = offerModel.discount,
+                                fontSize = 15.sp,
+                                fontFamily = satoshi_regular,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+
+                    }
+
+
                 }
-
-
-
-
             }
 
 
@@ -1035,7 +1046,7 @@ fun CartOfferView(offerModel: DataXX, openQr: (id: String) -> Unit,deleteCart:(S
 
     val offer = offerModel.offer
     Log.d("offer",offer.toString())
-    val media = if (offer.media.isEmpty()) emptyList() else offerModel.offer.media.map { it.url }
+    val media = if (offer?.media?.isEmpty() == true) emptyList() else offerModel.offer?.media?.map { it.url }
 
     Card(
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -1058,7 +1069,9 @@ fun CartOfferView(offerModel: DataXX, openQr: (id: String) -> Unit,deleteCart:(S
 
 
                     // Image slider
-                    AutoImageSlider(imageUrls = media)
+                    if (media != null) {
+                        AutoImageSlider(imageUrls = media, height = 180.dp)
+                    }
                     if(showOpenQrBtn) {
                         Box(
                             modifier = Modifier
@@ -1103,7 +1116,7 @@ fun CartOfferView(offerModel: DataXX, openQr: (id: String) -> Unit,deleteCart:(S
                             .align(Alignment.BottomStart)
                     ) {
                         Text(
-                            text = "${offer.quantity} left",
+                            text = "${offer?.quantity} left",
                             color = Color.Black,
                             fontSize = 14.sp,
                             modifier = Modifier.padding(vertical = 6.dp, horizontal = 12.dp)
@@ -1115,7 +1128,7 @@ fun CartOfferView(offerModel: DataXX, openQr: (id: String) -> Unit,deleteCart:(S
                     Spacer(Modifier.height(5.dp))
 
                     Text(
-                        text = offer.title?:"",
+                        text = offer?.title?:"",
                         fontSize = 22.sp,
                         fontFamily = satoshi_regular,
                         fontWeight = FontWeight.SemiBold,
@@ -1127,7 +1140,7 @@ fun CartOfferView(offerModel: DataXX, openQr: (id: String) -> Unit,deleteCart:(S
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
-                        text = offer.description,
+                        text = offer?.description?:"",
                         fontSize = 14.sp,
                         fontFamily = satoshi_regular,
                         color = Color.Black,
@@ -1159,7 +1172,7 @@ fun CartOfferView(offerModel: DataXX, openQr: (id: String) -> Unit,deleteCart:(S
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = offer.discount,
+                                text = offer?.discount?:"",
                                 fontSize = 15.sp,
                                 fontFamily = satoshi_regular,
                                 fontWeight = FontWeight.SemiBold
@@ -1174,7 +1187,7 @@ fun CartOfferView(offerModel: DataXX, openQr: (id: String) -> Unit,deleteCart:(S
                         textColor = BtnColor,
                         modifier = Modifier.padding(vertical = 0.dp)
                     ) {
-                        openQr(offer.id.toString())
+                        openQr(offer?.id.toString())
                     }
                 }
             }

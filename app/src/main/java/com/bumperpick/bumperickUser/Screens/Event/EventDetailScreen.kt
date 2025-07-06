@@ -297,8 +297,8 @@ fun EventDetailScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         LiveVideoScreen(
-                            youtubeVideoId = eventData.youtube_link,
-                            facebookVideoUrl = eventData.facebook_link
+                            youtubeVideoId = eventData.youtube_link?:"",
+                            facebookVideoUrl = eventData.facebook_link?:""
                         )
                     }
                 }

@@ -413,7 +413,7 @@ fun EventCard(events: DataXXXXXX, onClick: (DataXXXXXX) -> Unit) {
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Text(
-                        text = "${events.number_of_participant} PARTICIPANTS",
+                        text = "MAX ${events.number_of_participant} PARTICIPANTS",
                         color = Color.White,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold

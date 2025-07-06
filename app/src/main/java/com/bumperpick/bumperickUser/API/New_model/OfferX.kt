@@ -14,6 +14,6 @@ data class OfferX(
     val start_date: String,
     val subheading: Any,
     val terms: String,
-    val title: String?,
+    val title: String?="",
     val vendor_id: Int
 )

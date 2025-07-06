@@ -8,12 +8,12 @@ data class DataXXXXXXXX(
     val end_date: Any,
     val end_time: Any,
     val expire: Boolean,
-    val facebook_link: String,
+    val facebook_link: String?="",
     val id: Int,
     val start_date: String,
     val start_time: String,
     val status: String,
     val title: String,
     val vendor_id: Int,
-    val youtube_link: String
+    val youtube_link: String?=""
 )

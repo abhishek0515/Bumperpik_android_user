@@ -230,7 +230,7 @@ fun home(homeclick:(HomeClick)->Unit,
 
             }
             item {
-                Card(shape = RoundedCornerShape(16.dp), modifier = Modifier.padding(horizontal = 8.dp), border = BorderStroke(0.1.dp,
+                Card(shape = RoundedCornerShape(16.dp), modifier = Modifier.padding(horizontal = 16.dp), border = BorderStroke(0.1.dp,
                     Color.Black)
                 )
                 {
