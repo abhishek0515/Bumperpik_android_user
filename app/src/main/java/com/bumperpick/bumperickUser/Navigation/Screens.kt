@@ -11,9 +11,9 @@ sealed class Screen(val route: String) {
     }
     object HomePage : Screen("homePage")
 
-    object OfferDetail:Screen("offerDetail/{$OFFER_ID}"){
-        fun withOfferId(offerId:String):String{
-            return "offerDetail/$offerId"
+    object OfferDetail:Screen("offerDetail/{$OFFER_ID}/{$is_offer_or_history}"){
+        fun withOfferId(offerId:String,is_offer_or_history: Boolean =false):String{
+            return "offerDetail/$offerId/$is_offer_or_history"
         }
     }
     object Location:Screen("location")
@@ -23,6 +23,7 @@ sealed class Screen(val route: String) {
     companion object {
         const val MOBILE_KEY = "mobile"
         const val OFFER_ID ="offer_id"
+        const val is_offer_or_history="is_offer_or_history"
         const val SUB_CAT_ID="sub_cat_id"
         const val SUB_CAT_NAME="sub_cat_name"
         const val CAT_ID="cat_id"

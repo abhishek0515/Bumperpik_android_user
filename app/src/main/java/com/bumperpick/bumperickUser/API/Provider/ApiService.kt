@@ -119,6 +119,11 @@ interface ApiService {
     suspend fun get_event(
         @Query("token") token: String
     ):Response<CustomerEventModel>
+
+    @POST("api/customer/promotion-reviews/store")
+    @FormUrlEncoded
+    suspend fun review_offer(@FieldMap map: Map<String, String>):Response<success_model>
+
 }
 data class EventRegisterRequest(
     val token: String,

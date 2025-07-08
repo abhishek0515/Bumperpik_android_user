@@ -8,6 +8,7 @@ import com.bumperpick.bumperickUser.API.New_model.OfferHistoryModel
 import com.bumperpick.bumperickUser.API.New_model.cartDetails
 import com.bumperpick.bumperickUser.API.New_model.deletemodel
 import com.bumperpick.bumperickUser.API.New_model.sub_categories
+import com.bumperpick.bumperpickvendor.API.Model.success_model
 
 interface OfferRepository {
     suspend fun getOffers(subcat_id:String,cat_id:String): Result<List<Offer>>
@@ -19,4 +20,5 @@ interface OfferRepository {
    suspend fun getCategories():Result< List<Category>>
     suspend fun getSubCategories(cat_id:Int):Result<List<sub_categories>>
     suspend fun getOfferHisotry(): Result<OfferHistoryModel>
+    suspend fun reviewtheoffer(offerID:String,rating:String,review:String):Result<success_model>
 }

@@ -10,6 +10,7 @@ import com.bumperpick.bumperickUser.API.New_model.OfferHistoryModel
 import com.bumperpick.bumperickUser.API.New_model.cartDetails
 import com.bumperpick.bumperickUser.Repository.OfferRepository
 import com.bumperpick.bumperickUser.Repository.Result
+import com.bumperpick.bumperpickvendor.API.Model.success_model
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -43,6 +44,9 @@ class HomePageViewmodel(val offerRepository: OfferRepository):ViewModel() {
     
     private val _categories_uiState = MutableStateFlow<UiState<List<Category>>>(UiState.Empty)
     val categories_uiState: StateFlow<UiState<List<Category>>> = _categories_uiState
+
+    private val _rating_uiState= MutableStateFlow<UiState<success_model>>(UiState.Empty)
+    val rating_state:StateFlow<UiState<success_model>> =_rating_uiState
     
     fun getCategory(){
       viewModelScope.launch {
@@ -113,7 +117,7 @@ class HomePageViewmodel(val offerRepository: OfferRepository):ViewModel() {
             }
         }
     }
-        fun getOffer_history() {
+    fun getOffer_history() {
         viewModelScope.launch {
             val result = offerRepository.getOfferHisotry()
             when (result) {
@@ -156,6 +160,18 @@ class HomePageViewmodel(val offerRepository: OfferRepository):ViewModel() {
 
 
 
+    }
+
+    fun giverating(offerId:String,rating:String,feedback:String){
+        viewModelScope.launch {
+            _rating_uiState.value=UiState.Loading
+            val result=offerRepository.reviewtheoffer(offerId,rating,feedback)
+            when(result){
+                is Result.Error -> _rating_uiState.value=UiState.Error(result.message)
+                Result.Loading -> _rating_uiState.value=UiState.Loading
+                is Result.Success -> _rating_uiState.value=UiState.Success(result.data)
+            }
+        }
     }
 
 

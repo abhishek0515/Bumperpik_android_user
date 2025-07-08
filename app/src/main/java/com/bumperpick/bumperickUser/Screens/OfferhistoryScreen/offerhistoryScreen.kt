@@ -64,9 +64,10 @@ import org.koin.androidx.compose.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun offerhistoryScreen(  onBackClick: () -> Unit,
-                         OfferViewmodel: HomePageViewmodel = koinViewModel()){
+                         openOfferDetail:(String)->Unit,
+                         viewmodel: HomePageViewmodel = koinViewModel()){
 
-    val viewmodel: HomePageViewmodel = koinViewModel()
+
     val context = LocalContext.current
 
     val offerUiState by viewmodel.history_uiState.collectAsState()
@@ -211,6 +212,9 @@ fun offerhistoryScreen(  onBackClick: () -> Unit,
                                             },
                                             deleteCart = {
 
+                                            },
+                                            onCardClick = {
+                                                openOfferDetail(it)
                                             }
 
 

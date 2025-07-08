@@ -17,6 +17,7 @@ data class Offer(
     val subheading: String = "",
     val terms: String = "",
     val title: String = "",
+    val average_rating:Int=2,
     val vendor_id: Int = 0,
     val is_ads:Boolean=false,
 )

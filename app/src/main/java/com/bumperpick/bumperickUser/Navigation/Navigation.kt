@@ -207,12 +207,12 @@ fun AppNavigation() {
         composable(route=Screen.OfferDetail.route,
             arguments = listOf(navArgument(Screen.OFFER_ID){
                 type=NavType.StringType
-            })
+            }, navArgument(Screen.is_offer_or_history){type=NavType.BoolType})
         ){ navBackStackEntry ->
             val offerId = navBackStackEntry.arguments?.getString(Screen.OFFER_ID)?:""
-            OfferDetails(offerId){
-                navController.popBackStack()
-            }
+            val is_offer_or_history=navBackStackEntry.arguments?.getBoolean(Screen.is_offer_or_history)
+
+            OfferDetails(offerId, onBackClick = {navController.popBackStack()},is_offer_or_history!!)
         }
         composable(route=Screen.Search.route){
             OfferSearchPage(onBackClick = {navController.popBackStack()}, onHomeClick = {
@@ -297,6 +297,8 @@ fun AppNavigation() {
         composable(route=Screen.OfferHistoryScreen.route){
             offerhistoryScreen(onBackClick = {
                 navController.popBackStack()
+            }, openOfferDetail = {
+               navController.navigate(Screen.OfferDetail.withOfferId(it,true))
             })
         }
         composable(route=Screen.EventScreen2.route){

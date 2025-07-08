@@ -47,12 +47,14 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
@@ -971,13 +973,52 @@ fun HomeOfferView(offerModel: Offer, offerClick:(String)->Unit  ){
             if(!offerModel.is_ads) {
                 Column(modifier = Modifier.padding(12.dp)) {
                     Spacer(Modifier.height(5.dp))
-                    Text(
-                        text = offerModel.title,
-                        fontSize = 22.sp,
-                        fontFamily = satoshi_regular,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.Black
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Text(
+                            text = offerModel.title,
+                            fontSize = 22.sp,
+                            fontFamily = satoshi_regular,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.Black,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        // Rating stars
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            repeat(5) { index ->
+                                Box(modifier = Modifier.size(24.dp)) {
+                                    // Black outline star
+                                    Icon(
+                                        imageVector = Icons.Outlined.Star,
+                                        contentDescription = null,
+                                        tint = Color.Gray,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+
+                                    // Golden filled star (only if rating covers this star)
+                                    if (index < offerModel.average_rating) {
+                                        Icon(
+                                            imageVector = Icons.Default.Star,
+                                            contentDescription = "Star ${index + 1}",
+                                            tint = Color(0xFFFFD700),
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .padding(1.dp) // Small padding to show black outline
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = offerModel.description,
@@ -1039,7 +1080,7 @@ fun HomeOfferView(offerModel: Offer, offerClick:(String)->Unit  ){
 
 }
 @Composable
-fun CartOfferView(offerModel: DataXX, openQr: (id: String) -> Unit,deleteCart:(String)->Unit,showOpenQrBtn:Boolean=true) {
+fun CartOfferView(offerModel: DataXX, openQr: (id: String) -> Unit,deleteCart:(String)->Unit,showOpenQrBtn:Boolean=true,onCardClick:(id:String)->Unit={}) {
 
     val context= LocalContext.current
     var loading by remember { mutableStateOf(false) }
@@ -1049,7 +1090,7 @@ fun CartOfferView(offerModel: DataXX, openQr: (id: String) -> Unit,deleteCart:(S
     val media = if (offer?.media?.isEmpty() == true) emptyList() else offerModel.offer?.media?.map { it.url }
 
     Card(
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).clickable { onCardClick(offer?.id.toString()) },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),

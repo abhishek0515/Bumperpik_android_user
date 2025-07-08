@@ -10,6 +10,7 @@ import com.bumperpick.bumperickUser.API.New_model.OfferHistoryModel
 import com.bumperpick.bumperickUser.API.New_model.cartDetails
 import com.bumperpick.bumperickUser.API.New_model.deletemodel
 import com.bumperpick.bumperickUser.API.New_model.sub_categories
+import com.bumperpick.bumperpickvendor.API.Model.success_model
 import com.bumperpick.bumperpickvendor.API.Provider.ApiResult
 import com.bumperpick.bumperpickvendor.API.Provider.ApiService
 import com.bumperpick.bumperpickvendor.API.Provider.safeApiCall
@@ -156,6 +157,26 @@ class OfferRepositoryImpl(
             is ApiResult.Error -> Result.Error(response.message)
         }
     }
+
+    override suspend fun reviewtheoffer(offerID:String,rating:String,review:String,): Result<success_model> {
+        val map:HashMap<String,String> = hashMapOf()
+        val token=dataStoreManager.getToken.firstOrNull()
+        map["promotion_id"]=offerID
+        map["rating"] =rating
+        map["review"] =rating
+        map["token"]=token.toString()
+
+        val result= safeApiCall(context=context,api={apiService.review_offer(map)}, refreshTokenApi ={apiService.refresh_token(it)},dataStoreManager=dataStoreManager)
+         when(result){
+             is ApiResult.Error -> {
+                 return Result.Error(result.message)
+             }
+             is ApiResult.Success -> return Result.Success(result.data)
+         }
+
+
+    }
+
     override suspend fun getUserId(): Result<String> {
         val userId = dataStoreManager.getUserId.firstOrNull()
         return if (!userId.isNullOrEmpty()) Result.Success(userId)

@@ -23,18 +23,27 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.KeyboardArrowLeft
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,6 +61,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -60,6 +70,7 @@ import com.bumperpick.bumperickUser.R
 import com.bumperpick.bumperickUser.Screens.Component.ButtonView
 import com.bumperpick.bumperickUser.Screens.Component.QRCodeBottomSheet
 import com.bumperpick.bumperickUser.ui.theme.BtnColor
+import com.bumperpick.bumperpickvendor.API.Model.success_model
 import org.koin.androidx.compose.koinViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -69,7 +80,7 @@ import java.util.Locale
 
 
 @Composable
-fun OfferDetails(offerid:String,onBackClick:()->Unit) {
+fun OfferDetails(offerid:String,onBackClick:()->Unit,is_offer_or_history:Boolean) {
     val homePageViewmodel:HomePageViewmodel= koinViewModel()
     val context= LocalContext.current
     LaunchedEffect(Unit) {
@@ -89,7 +100,7 @@ fun OfferDetails(offerid:String,onBackClick:()->Unit) {
            }
 
            is UiState.Success -> {
-               offerDetail(offer_detail.data, onBackClick)
+               offerDetail(offer_detail.data, onBackClick,is_offer_or_history)
            }
 
            UiState.Empty -> {
@@ -106,8 +117,9 @@ fun OfferDetails(offerid:String,onBackClick:()->Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun offerDetail( offer:Offer,onBackClick: () -> Unit){
+fun offerDetail(offer: Offer, onBackClick: () -> Unit, is_offer_or_history: Boolean){
     val viewmodel:HomePageViewmodel= koinViewModel()
+    val ratingstate by viewmodel.rating_state.collectAsState()
     val userid=viewmodel.userId.collectAsState().value
     LaunchedEffect(Unit) {
         viewmodel.fetchUserId()
@@ -115,6 +127,7 @@ fun offerDetail( offer:Offer,onBackClick: () -> Unit){
 
 
     var is_saved by remember { mutableStateOf(false) }
+    var showRatingSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
     )
@@ -339,9 +352,62 @@ fun offerDetail( offer:Offer,onBackClick: () -> Unit){
 
 
         }
-        ButtonView(if(is_saved) "Open QR" else "Avail Offer", modifier = Modifier.align(Alignment.BottomCenter)) {
-            showBottomSheet=true
+        val context = LocalContext.current
 
+        if (is_offer_or_history) {
+            when (ratingstate) {
+                UiState.Empty -> {
+                    // Handle empty state if needed
+                }
+                is UiState.Error -> {
+                    Toast.makeText(
+                        context,
+                        (ratingstate as UiState.Error).message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                UiState.Loading -> {
+                    // Loading is handled below
+                }
+                is UiState.Success -> {
+                    Toast.makeText(
+                        context,
+                        (ratingstate as UiState.Success<success_model>).data.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+            if (ratingstate == UiState.Loading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                ) {
+                    CircularProgressIndicator(
+                        color = BtnColor,
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .align(Alignment.Center)
+                    )
+                }
+            } else {
+                ButtonView(
+                    "Rate And FeedBack",
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                ) {
+                    showRatingSheet = true
+                }
+            }
+        }
+        else {
+            ButtonView(
+                if (is_saved) "Open QR" else "Avail Offer",
+                modifier = Modifier.align(Alignment.BottomCenter)
+            ) {
+                showBottomSheet = true
+
+            }
         }
 
 
@@ -373,10 +439,167 @@ fun offerDetail( offer:Offer,onBackClick: () -> Unit){
 
         }
 
+        if(showRatingSheet){
+            ModalBottomSheet(
+                onDismissRequest = { showBottomSheet = false },
+                sheetState = sheetState,
+                containerColor = Color.White,
+                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+            ) {
+
+                RateOfferBottomSheet(offerTitle = offer.title, offerDescription = offer.description, onCancel = {showRatingSheet=false},
+                    onSubmit = {rating: Int, feedback: String ->
+                        viewmodel.giverating(offer.id.toString(),rating.toString(),feedback.toString())
+                        showRatingSheet=false
+
+                    })
+            }
+        }
+
 
     }
 }
 
+@Composable
+fun RateOfferBottomSheet(
+    offerTitle: String = "Special Discount Offer",
+    offerDescription: String = "Get 20% off on your next purchase. This exclusive offer is valid for a limited time only.",
+    onCancel: () -> Unit = {},
+    onSubmit: (rating: Int, feedback: String) -> Unit = { _, _ -> }
+) {
+    var rating by remember { mutableStateOf(0) }
+    var feedback by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top=12.dp, bottom = 12.dp, start = 24.dp, end = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
+        // Header
+        Text(
+            text = "Rate this offer",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
+        )
+
+        // Offer Title
+        Text(
+            text = offerTitle,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        )
+
+        // Offer Description
+        Text(
+            text = offerDescription,
+            fontSize = 14.sp,
+            color = Color.Black,
+            lineHeight = 20.sp
+        )
+
+        // Star Rating
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                repeat(5) { index ->
+                    IconButton(
+                        onClick = { rating = index + 1 },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (index < rating) Icons.Outlined.Star else Icons.Outlined.Star,
+                            contentDescription = "Star ${index + 1}",
+                            tint = if (index < rating) Color(0xFFFFC107) else Color.Gray,
+                            modifier = Modifier.size(36.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        // Feedback Text Field
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "Feedback ",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.Black
+            )
+
+            OutlinedTextField(
+                value = feedback,
+                onValueChange = { feedback = it },
+                placeholder = { Text("Share your thoughts about this offer...") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp),
+                shape = RoundedCornerShape(12.dp),
+                maxLines = 4
+            )
+        }
+
+        // Buttons
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Cancel Button
+
+            TextButton (
+                onClick = onCancel,
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                border = ButtonDefaults.outlinedButtonBorder.copy(
+                    width = 0.dp
+                )
+            ) {
+                Text(
+                    text = "Cancel",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = BtnColor,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+            }
+
+            // Submit Button
+            Button(
+                onClick = { onSubmit(rating, feedback) },
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(containerColor = BtnColor),
+                shape = RoundedCornerShape(12.dp),
+                enabled = rating > 0
+            ) {
+                Text(
+                    text = "Submit",
+                    fontSize = 16.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+            }
+        }
+
+        // Bottom spacing for gesture indicator
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
 
 
 fun formatDate(input: String): String {
