@@ -60,10 +60,10 @@ import com.bumperpick.bumperickUser.ui.theme.BtnColor
 import com.bumperpick.bumperickUser.ui.theme.grey
 import com.bumperpick.bumperickUser.ui.theme.satoshi_regular
 import org.koin.androidx.compose.koinViewModel
-fun shareReferral(context: Context) {
+fun shareReferral(context: Context,text: String="Try this APP") {
     val intent = Intent().apply {
         action = Intent.ACTION_SEND
-        putExtra(Intent.EXTRA_TEXT, "Try this APP")
+        putExtra(Intent.EXTRA_TEXT,text )
         type = "text/plain"
     }
     context.startActivity(Intent.createChooser(intent, "Share via"))
@@ -128,7 +128,7 @@ fun ReferralSettingsCard(onClick:(AccountClick)->Unit) {
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Offer history",
+                    text = "Offer History",
                     color = Color.Black,
                     fontSize = 16.sp,
                     modifier = Modifier.weight(1f)
@@ -179,7 +179,7 @@ fun ReferralSettingsCard(onClick:(AccountClick)->Unit) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { /* Handle click */ }
+                    .clickable { onClick(AccountClick.FavClick) }
                     .padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -228,6 +228,13 @@ sealed class AccountClick(){
     object EditAccount:AccountClick()
     object OfferHistory:AccountClick()
     object EventClick:AccountClick()
+    object CampaignClick:AccountClick()
+
+    object FaqClick: AccountClick()
+
+    object mailToAdmin: AccountClick()
+
+    object  FavClick: AccountClick()
 }
 @Composable
 fun AccountScreen(accountclick:(AccountClick)->Unit,viewmodel: AccountViewmodel= koinViewModel()){
@@ -374,13 +381,14 @@ fun AccountScreen(accountclick:(AccountClick)->Unit,viewmodel: AccountViewmodel=
             Spacer(modifier = Modifier.height(12.dp))
 
             Box (modifier = Modifier.fillMaxWidth().clickable {
-                accountclick(AccountClick.EventClick)
+                accountclick(AccountClick.CampaignClick)
             }.background(Color.White), )
             {
                 Row (modifier = Modifier.padding(12.dp).align(Alignment.CenterStart)){
                     Image(painter = painterResource(R.drawable.star_circle_svgrepo_com), contentDescription = null, modifier = Modifier.size(30.dp),)
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text(text = "Event", color = Color.Black, fontSize = 16.sp,)
+                    Text(text = "Campaign", color = Color.Black, fontSize = 16.sp,modifier = Modifier.align(
+                        Alignment.CenterVertically))
                 }
 
                 Image(imageVector = Icons.Outlined.KeyboardArrowRight, contentDescription = null, modifier = Modifier.size(24.dp).align(Alignment.CenterEnd),)
@@ -389,13 +397,61 @@ fun AccountScreen(accountclick:(AccountClick)->Unit,viewmodel: AccountViewmodel=
             Spacer(modifier = Modifier.height(12.dp))
 
             Box (modifier = Modifier.fillMaxWidth().clickable {
+                accountclick(AccountClick.EventClick)
+            }.background(Color.White), )
+            {
+                Row (modifier = Modifier.padding(12.dp).align(Alignment.CenterStart)){
+                    Image(painter = painterResource(R.drawable.star_circle_svgrepo_com), contentDescription = null, modifier = Modifier.size(30.dp),)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(text = "Event", color = Color.Black, fontSize = 16.sp,modifier = Modifier.align(
+                        Alignment.CenterVertically))
+                }
+
+                Image(imageVector = Icons.Outlined.KeyboardArrowRight, contentDescription = null, modifier = Modifier.size(24.dp).align(Alignment.CenterEnd),)
+
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+
+
+            Box (modifier = Modifier.fillMaxWidth().clickable {
+                accountclick(AccountClick.FaqClick)
+            }.background(Color.White), )
+            {
+                Row (modifier = Modifier.padding(12.dp).align(Alignment.CenterStart)){
+                    Image(painter = painterResource(R.drawable.faq_svgrepo_com), contentDescription = null, modifier = Modifier.size(24.dp),)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(text = "FAQs", color = Color.Black, fontSize = 16.sp, modifier = Modifier.align(
+                        Alignment.CenterVertically))
+                }
+
+                Image(imageVector = Icons.Outlined.KeyboardArrowRight, contentDescription = null, modifier = Modifier.size(24.dp).align(Alignment.CenterEnd),)
+
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Box (modifier = Modifier.fillMaxWidth().clickable {
+                accountclick(AccountClick.mailToAdmin)
+            }.background(Color.White), )
+            {
+                Row (modifier = Modifier.padding(12.dp).align(Alignment.CenterStart)){
+                    Image(painter = painterResource(R.drawable.email_9_svgrepo_com), contentDescription = null, modifier = Modifier.size(24.dp),)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(text = "Email to admin", color = Color.Black, fontSize = 16.sp, modifier = Modifier.align(
+                        Alignment.CenterVertically))
+                }
+
+                Image(imageVector = Icons.Outlined.KeyboardArrowRight, contentDescription = null, modifier = Modifier.size(24.dp).align(Alignment.CenterEnd),)
+
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Box (modifier = Modifier.fillMaxWidth().clickable {
               show_signoutDialog=true
 
             }.background(Color.White), ){
                 Row (modifier = Modifier.padding(12.dp).align(Alignment.CenterStart)){
                     Image(imageVector = Icons.Outlined.ExitToApp, contentDescription = null, modifier = Modifier.size(30.dp),)
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text(text = "Sign out", color = Color.Black, fontSize = 16.sp,)
+                    Text(text = "Sign out", color = Color.Black, fontSize = 16.sp, modifier = Modifier.align(
+                        Alignment.CenterVertically))
                 }
 
                 Image(imageVector = Icons.Outlined.KeyboardArrowRight, contentDescription = null, modifier = Modifier.size(24.dp).align(

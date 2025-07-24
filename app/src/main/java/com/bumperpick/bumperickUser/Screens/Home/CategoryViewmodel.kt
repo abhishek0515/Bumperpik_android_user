@@ -25,18 +25,14 @@ class CategoryViewModel(
     val selectedCategory: StateFlow<Category?> = _selectedCategory.asStateFlow()
 
     // Cache for categories to avoid unnecessary API calls
-    private var categoriesCache: List<Category>? = null
-    private val subCategoriesCache = mutableMapOf<Int, List<sub_categories>>()
+
 
     init {
         getCategories()
     }
 
     fun getCategories() {
-        if (categoriesCache != null) {
-            _categoriesUiState.value = UiState.Success(categoriesCache!!)
-            return
-        }
+
 
         viewModelScope.launch {
             _categoriesUiState.value = UiState.Loading
@@ -44,7 +40,7 @@ class CategoryViewModel(
             try {
                 when (val result = offerRepository.getCategories()) {
                     is Result.Success -> {
-                        categoriesCache = result.data
+
                         _categoriesUiState.value = UiState.Success(result.data)
                     }
                     is Result.Error -> {
@@ -62,10 +58,7 @@ class CategoryViewModel(
 
     fun fetchSubCategories(categoryId: Int) {
         // Check cache first
-        subCategoriesCache[categoryId]?.let { cachedSubCategories ->
-            _subCategoriesUiState.value = UiState.Success(cachedSubCategories)
-            return
-        }
+
 
         viewModelScope.launch {
             _subCategoriesUiState.value = UiState.Loading
@@ -73,7 +66,7 @@ class CategoryViewModel(
             try {
                 when (val result = offerRepository.getSubCategories(categoryId)) {
                     is Result.Success -> {
-                        subCategoriesCache[categoryId] = result.data
+
                         _subCategoriesUiState.value = UiState.Success(result.data)
                     }
                     is Result.Error -> {
@@ -100,19 +93,17 @@ class CategoryViewModel(
     }
 
     fun refreshCategories() {
-        categoriesCache = null
+
         getCategories()
     }
 
     fun refreshSubCategories(categoryId: Int) {
-        subCategoriesCache.remove(categoryId)
+
         fetchSubCategories(categoryId)
     }
 
     // Clear cache when needed
     fun clearCache() {
-        categoriesCache = null
-        subCategoriesCache.clear()
     }
 
     override fun onCleared() {

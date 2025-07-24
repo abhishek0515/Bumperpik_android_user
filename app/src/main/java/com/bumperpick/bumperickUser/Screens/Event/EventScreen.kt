@@ -63,6 +63,7 @@ import com.bumperpick.bumperickUser.API.New_model.EventModel
 import com.bumperpick.bumperickUser.R
 import com.bumperpick.bumperickUser.Screens.Campaign.InfoRow
 import com.bumperpick.bumperickUser.Screens.Home.UiState
+import com.bumperpick.bumperickUser.Screens.Home.formatDate
 import com.bumperpick.bumperickUser.ui.theme.BtnColor
 import com.bumperpick.bumperickUser.ui.theme.satoshi_bold
 import com.bumperpick.bumperickUser.ui.theme.satoshi_regular
@@ -71,6 +72,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun EventScreenMain(
     onBackClick: () -> Unit,
+    onFavClick:()-> Unit,
     onNotificationClick: () -> Unit = {},
     gotoEventDetail: (id:Int) -> Unit = {},
     viewmodel: EventViewmodel = koinViewModel(),
@@ -167,7 +169,7 @@ fun EventScreenMain(
                     ) {
                         // Custom Icon Button
                         IconButton(
-                            onClick = onNotificationClick,
+                            onClick = onFavClick,
                             modifier = Modifier.size(44.dp)
                         ) {
                             Icon(
@@ -283,7 +285,7 @@ fun EventScreenMain(
                     Image(painter = painterResource(R.drawable.left), contentDescription = null, modifier = Modifier.size(12.dp))
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = "${filteredList.size} Event",
+                        text = "${filteredList.size} EVENT",
                         letterSpacing = 2.sp, // Use sp for text spacing, not dp
                         color = Color.Gray,
                         fontSize = 16.sp,
@@ -357,12 +359,28 @@ fun EventCard2(event: DataXXXXXXXX,onClick:(id:Int)->Unit) {
 
                 InfoRow(
                     icon = painterResource(R.drawable.calendar_svgrepo_com),
-                    text = "Event date: ${event.start_date}"
+                    text = "Event Start Date: ${formatDate(event.start_date)}"
                 )
                 InfoRow(
                     icon = painterResource(R.drawable.clock),
-                    text = "Event time: ${event.start_time}"
+                    text = "Event Start Time: ${event.start_time}"
                 )
+                event.end_date?.let {
+                    InfoRow(
+                        icon = painterResource(R.drawable.calendar_svgrepo_com),
+                        text = "Event End Date: ${formatDate(it)}"
+                    )
+                }
+                event.end_time?.let {
+                    InfoRow(
+                        icon = painterResource(R.drawable.clock),
+                        text = "Event End Time: ${event.end_time}"
+                    )
+                }
+
+
+
+
             }
         }
     }

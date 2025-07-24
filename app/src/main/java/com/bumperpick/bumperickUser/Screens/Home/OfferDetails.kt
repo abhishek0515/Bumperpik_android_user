@@ -1,5 +1,8 @@
 package com.bumperpick.bumperickUser.Screens.Home
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
@@ -18,12 +21,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Call
+import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.KeyboardArrowLeft
 import androidx.compose.material.icons.outlined.LocationOn
@@ -36,12 +43,14 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -60,22 +69,28 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.size.Scale
 import com.bumperpick.bumperickUser.API.New_model.Offer
+import com.bumperpick.bumperickUser.API.New_model.Review
 import com.bumperpick.bumperickUser.R
 import com.bumperpick.bumperickUser.Screens.Component.ButtonView
 import com.bumperpick.bumperickUser.Screens.Component.QRCodeBottomSheet
 import com.bumperpick.bumperickUser.ui.theme.BtnColor
+import com.bumperpick.bumperickUser.ui.theme.satoshi_regular
 import com.bumperpick.bumperpickvendor.API.Model.success_model
 import org.koin.androidx.compose.koinViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 import java.util.Locale
+
 
 
 
@@ -87,46 +102,99 @@ fun OfferDetails(offerid:String,onBackClick:()->Unit,is_offer_or_history:Boolean
         homePageViewmodel.getOfferDetails(offerid)
     }
     val offer_detail=homePageViewmodel.offer_details_uiState.collectAsState().value
-   Box(modifier = Modifier.fillMaxSize()) {
+    Scaffold {
+        Box(modifier = Modifier.fillMaxSize().padding(it)) {
 
-       when (offer_detail) {
-           is UiState.Error -> {
-               Log.d("error", offer_detail.message)
-               Toast.makeText(context, offer_detail.message, Toast.LENGTH_SHORT).show()
-           }
+            when (offer_detail) {
+                is UiState.Error -> {
+                    Log.d("error", offer_detail.message)
+                    Toast.makeText(context, offer_detail.message, Toast.LENGTH_SHORT).show()
+                }
 
-           is UiState.Loading -> {
-               CircularProgressIndicator(color = BtnColor, modifier = Modifier.align(Alignment.Center))
-           }
+                is UiState.Loading -> {
+                    CircularProgressIndicator(
+                        color = BtnColor,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
 
-           is UiState.Success -> {
-               offerDetail(offer_detail.data, onBackClick,is_offer_or_history)
-           }
+                is UiState.Success -> {
+                    offerDetail(offer_detail.data, onBackClick, is_offer_or_history)
+                }
 
-           UiState.Empty -> {
-               CircularProgressIndicator(color = BtnColor, modifier = Modifier.align(Alignment.Center))
-               Log.d("error", "empty")
-           }
-       }
-   }
+                UiState.Empty -> {
+                    CircularProgressIndicator(
+                        color = BtnColor,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                    Log.d("error", "empty")
+                }
+            }
+        }
+    }
 
 
 }
 
 
+private fun openMap(context: Context, address: String) {
+    try {
+        val encodedAddress = Uri.encode(address)
+        val gmmIntentUri = Uri.parse("geo:0,0?q=$encodedAddress")
+        val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+        mapIntent.setPackage("com.google.android.apps.maps")
 
+        if (mapIntent.resolveActivity(context.packageManager) != null) {
+            context.startActivity(mapIntent)
+        } else {
+            // Fallback to web browser
+            val webIntent = Intent(Intent.ACTION_VIEW,
+                Uri.parse("https://www.google.com/maps/search/?api=1&query=$encodedAddress"))
+            context.startActivity(webIntent)
+        }
+    } catch (e: Exception) {
+        Toast.makeText(context, "Could not open map", Toast.LENGTH_SHORT).show()
+    }
+}
+
+private fun makePhoneCall(context: Context, phoneNumber: String) {
+    try {
+        val callIntent = Intent(Intent.ACTION_DIAL)
+        callIntent.data = Uri.parse("tel:$phoneNumber")
+        context.startActivity(callIntent)
+    } catch (e: Exception) {
+        Toast.makeText(context, "Could not make call", Toast.LENGTH_SHORT).show()
+    }
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun offerDetail(offer: Offer, onBackClick: () -> Unit, is_offer_or_history: Boolean){
     val viewmodel:HomePageViewmodel= koinViewModel()
     val ratingstate by viewmodel.rating_state.collectAsState()
+    val favtoogle by viewmodel.fav_toogle_uiState.collectAsState()
+    var isFavourite by remember { mutableStateOf(offer.is_favourited) }
     val userid=viewmodel.userId.collectAsState().value
     LaunchedEffect(Unit) {
         viewmodel.fetchUserId()
     }
+    LaunchedEffect(favtoogle) {
+        when(favtoogle){
+            UiState.Empty ->{}
+            is UiState.Error ->{}
+            UiState.Loading ->{}
+            is UiState.Success ->{
+                val data=(favtoogle as UiState.Success<success_model>).data
+                if(data.code>=200 && data.code<300){
+                    if(data.status.equals("removed")) isFavourite=false
+                    else isFavourite=true
+                }
+            }
+        }
+    }
 
 
     var is_saved by remember { mutableStateOf(false) }
+    val context=LocalContext.current
     var showRatingSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
@@ -136,9 +204,11 @@ fun offerDetail(offer: Offer, onBackClick: () -> Unit, is_offer_or_history: Bool
     Box(modifier = Modifier.fillMaxSize()) {
         Column (   modifier = Modifier
             .fillMaxSize()
-            .padding(bottom = 80.dp)
+            .padding(bottom =
+                if(offer.is_reviewed && is_offer_or_history) 12.dp else 80.dp)
             .verticalScroll(rememberScrollState()),
-        ){
+        )
+        {
             Card(
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -178,7 +248,7 @@ fun offerDetail(offer: Offer, onBackClick: () -> Unit, is_offer_or_history: Bool
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 30.dp, horizontal = 12.dp),
+                            .padding(vertical = 12.dp, horizontal = 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.Top
                     ) {
@@ -198,8 +268,7 @@ fun offerDetail(offer: Offer, onBackClick: () -> Unit, is_offer_or_history: Bool
                         }
 
                         Row {
-                            listOf(Icons.Outlined.FavoriteBorder, Icons.Outlined.Share).forEach {
-                                Spacer(modifier = Modifier.width(8.dp))
+                            if(!is_offer_or_history) {
                                 Card(
                                     colors = CardDefaults.cardColors(
                                         containerColor = Color.Black.copy(
@@ -210,13 +279,47 @@ fun offerDetail(offer: Offer, onBackClick: () -> Unit, is_offer_or_history: Bool
                                     shape = CircleShape
                                 ) {
                                     Icon(
-                                        imageVector = it,
+                                        imageVector =
+                                            if (isFavourite) {
+                                                Icons.Outlined.Favorite
+                                            } else {
+                                                Icons.Outlined.FavoriteBorder
+                                            },
                                         contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.padding(10.dp)
+                                        tint = if (isFavourite) {
+                                            Color.Red
+                                        } else {
+                                            Color.White
+                                        },
+                                        modifier = Modifier.padding(10.dp).clickable {
+                                            viewmodel.toogle_fav(offer.id.toString())
+                                        }
                                     )
                                 }
+                                Spacer(modifier = Modifier.width(8.dp))
                             }
+                            Card(
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color.Black.copy(
+                                        alpha = 0.3f
+                                    )
+                                ),
+                                border = BorderStroke(1.dp, Color.Gray),
+                                shape = CircleShape,
+                                onClick = {shareReferral(context,
+                                    "Check out this amazing offer: ${offer.title} - ${offer.heading}\nLocation: ${offer.address}\nOffer ID: ${offer.id}"
+                                )
+
+                                    }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Share,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.padding(10.dp)
+                                )
+                            }
+
                         }
                     }
 
@@ -240,7 +343,7 @@ fun offerDetail(offer: Offer, onBackClick: () -> Unit, is_offer_or_history: Bool
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = "OPEN FROM 09:00AM TO 11:00PM",
+                                        text = "OPEN FROM ${offer.opening_time?:""} TO ${offer.closing_time?:""}",
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Medium,
                                         color = BtnColor
@@ -248,12 +351,53 @@ fun offerDetail(offer: Offer, onBackClick: () -> Unit, is_offer_or_history: Bool
                                 }
 
                                 Spacer(modifier = Modifier.height(12.dp))
-
-                                Text(
-                                    text = offer.title,
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.Top
                                 )
+                                {
+                                    Text(
+                                        text = offer.title?:"",
+                                        fontSize = 22.sp,
+                                        fontFamily = satoshi_regular,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color.Black,
+                                        modifier = Modifier.weight(1f)
+                                    )
+
+                                    Spacer(modifier = Modifier.width(8.dp))
+
+                                    // Rating stars
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        repeat(5) { index ->
+                                            Box(modifier = Modifier.size(24.dp)) {
+                                                // Black outline star
+                                                Icon(
+                                                    imageVector = Icons.Outlined.Star,
+                                                    contentDescription = null,
+                                                    tint = Color.Gray,
+                                                    modifier = Modifier.fillMaxSize()
+                                                )
+
+                                                // Golden filled star (only if rating covers this star)
+                                                if (index < offer.average_rating) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Star,
+                                                        contentDescription = "Star ${index + 1}",
+                                                        tint = Color(0xFFFFD700),
+                                                        modifier = Modifier
+                                                            .fillMaxSize()
+                                                            .padding(1.dp) // Small padding to show black outline
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                                 Spacer(modifier = Modifier.height(8.dp))
 
                                 Text(
@@ -290,24 +434,65 @@ fun offerDetail(offer: Offer, onBackClick: () -> Unit, is_offer_or_history: Bool
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Divider(color = Color.LightGray)
                                 Spacer(modifier = Modifier.height(12.dp))
-
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.LocationOn,
-                                        contentDescription = null,
-                                        tint = BtnColor
+                                    // Location section - takes equal weight
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center,
+                                        modifier = Modifier.weight(1f).clickable{
+                                            openMap(context,offer.address)
+
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.LocationOn,
+                                            contentDescription = "Location",
+                                            tint = BtnColor
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = "Location",
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                    }
+
+                                    // Vertical divider
+                                    Box(
+                                        modifier = Modifier
+                                            .height(24.dp)
+                                            .width(1.dp)
+                                            .background(Color.Gray.copy(alpha = 0.3f))
+
                                     )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = "Location",
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Medium
-                                    )
+
+                                    // Call section - takes equal weight
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center,
+                                        modifier = Modifier.weight(1f)
+                                            .clickable{
+                                                makePhoneCall(context,offer.phone_number?:"")
+                                            }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.Call,
+                                            contentDescription = "Call",
+                                            tint = BtnColor
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = "Call",
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                    }
                                 }
+
+
                             }
                         }
                     }
@@ -328,7 +513,8 @@ fun offerDetail(offer: Offer, onBackClick: () -> Unit, is_offer_or_history: Bool
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
-            ) {
+            )
+            {
                 Text(text = "How to redeem offer", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.width(6.dp))
                 Divider(color = Color.LightGray)
@@ -339,7 +525,8 @@ fun offerDetail(offer: Offer, onBackClick: () -> Unit, is_offer_or_history: Bool
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
-            ) {
+            )
+            {
                 Text(text = "Photos", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.width(6.dp))
                 Divider(color = Color.LightGray)
@@ -349,6 +536,22 @@ fun offerDetail(offer: Offer, onBackClick: () -> Unit, is_offer_or_history: Bool
             val media=
                 if(offer.media.isEmpty()) emptyList() else  offer.media.map { it.url }
             PhotoGridScreen(imageUrls = media)
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = "Customer Feedback & Ratings ", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.width(6.dp))
+                Divider(color = Color.LightGray)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            ReviewScreen(offer.reviews)
+
+
+
+
 
 
         }
@@ -377,26 +580,28 @@ fun offerDetail(offer: Offer, onBackClick: () -> Unit, is_offer_or_history: Bool
                     ).show()
                 }
             }
-
-            if (ratingstate == UiState.Loading) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.BottomCenter)
-                ) {
-                    CircularProgressIndicator(
-                        color = BtnColor,
+            if(!offer.is_reviewed) {
+                if (ratingstate == UiState.Loading) {
+                    Box(
                         modifier = Modifier
-                            .padding(12.dp)
-                            .align(Alignment.Center)
-                    )
+                            .fillMaxWidth()
+                            .align(Alignment.BottomCenter)
+                    ) {
+                        CircularProgressIndicator(
+                            color = BtnColor,
+                            modifier = Modifier
+                                .padding(12.dp)
+                                .align(Alignment.Center)
+                        )
+                    }
                 }
-            } else {
-                ButtonView(
-                    "Rate And FeedBack",
-                    modifier = Modifier.align(Alignment.BottomCenter)
-                ) {
-                    showRatingSheet = true
+                else {
+                    ButtonView(
+                        "Rate & FeedBack",
+                        modifier = Modifier.align(Alignment.BottomCenter)
+                    ) {
+                        showRatingSheet = true
+                    }
                 }
             }
         }
@@ -447,7 +652,7 @@ fun offerDetail(offer: Offer, onBackClick: () -> Unit, is_offer_or_history: Bool
                 shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
             ) {
 
-                RateOfferBottomSheet(offerTitle = offer.title, offerDescription = offer.description, onCancel = {showRatingSheet=false},
+                RateOfferBottomSheet(offerTitle = offer.title?:"", offerDescription = offer.description, onCancel = {showRatingSheet=false},
                     onSubmit = {rating: Int, feedback: String ->
                         viewmodel.giverating(offer.id.toString(),rating.toString(),feedback.toString())
                         showRatingSheet=false
@@ -459,6 +664,118 @@ fun offerDetail(offer: Offer, onBackClick: () -> Unit, is_offer_or_history: Bool
 
     }
 }
+
+@Composable
+fun ReviewScreen(reviews: List<Review>) {
+    if (reviews.isEmpty()) {
+        // Empty state
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = "No reviews yet",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color.Black.copy(alpha = 0.6f)
+                )
+                Text(
+                    text = "Reviews will appear here once customers start leaving feedback",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Black.copy(alpha = 0.4f),
+                    modifier = Modifier.padding(top = 8.dp).fillMaxWidth()
+                )
+            }
+        }
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            reviews.forEach { review ->
+                ReviewItem(review = review)
+            }
+        }
+    }
+}
+
+@Composable
+fun ReviewItem(review: Review) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 0.dp)
+    ) {
+        // Top bar with customer ID and star rating
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Customer ID on the left
+            Text(
+                text = "Customer Name: ${review.customer_name}",
+                fontFamily = satoshi_regular,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.Black
+            )
+
+            // Star rating on the right
+            StarRating(rating = review.rating)
+        }
+
+        Spacer(modifier = Modifier.padding(top = 12.dp))
+
+        Text(
+            text = review.review,
+            fontFamily = satoshi_regular,
+            color = Color.Black,
+            lineHeight = 20.sp,
+            fontSize = 18.sp,
+           fontWeight = FontWeight.SemiBold
+        )
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 12.dp),
+            thickness = 1.dp,
+            color =Color.Gray.copy(alpha = 0.3f)
+        )
+
+    }
+}
+
+@Composable
+fun StarRating(rating: Int) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        repeat(5) { index ->
+            Icon(
+                imageVector = if (index < rating) Icons.Filled.Star else Icons.Outlined.Star,
+                contentDescription = null,
+                tint = if (index < rating) Color(0xFFFFD700) else MaterialTheme.colorScheme.outline,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
+        // Rating number
+        Text(
+            text = "($rating)",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            modifier = Modifier.padding(start = 4.dp)
+        )
+    }
+}
+
+
 
 @Composable
 fun RateOfferBottomSheet(
@@ -602,9 +919,10 @@ fun RateOfferBottomSheet(
 }
 
 
-fun formatDate(input: String): String {
+fun formatDate(input: String?): String {
+    if(input.isNullOrEmpty()) return ""
     val inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.ENGLISH)
-    val outputFormatter = DateTimeFormatter.ofPattern("dd MMM", Locale.ENGLISH)
+    val outputFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", Locale.ENGLISH)
 
     val date = LocalDate.parse(input, inputFormatter)
     return date.format(outputFormatter).uppercase() // to get "JAN" in uppercase
@@ -613,7 +931,7 @@ fun formatDate(input: String): String {
 @Composable
 fun CouponCard(offer: Offer) {
     println(offer)
-    val date=formatDate(offer.end_date)
+    val date= offer.end_date?.let { formatDate(it) }
 
     Card(
         modifier = Modifier
@@ -651,7 +969,7 @@ fun CouponCard(offer: Offer) {
                         .align(Alignment.BottomStart)
                         .padding(0.dp)
                 ) {
-                    // Valid till tag
+                    date?.let {
                     Box(
                         modifier = Modifier
                             .align(Alignment.End)
@@ -661,14 +979,18 @@ fun CouponCard(offer: Offer) {
                             )
                             .padding(horizontal = 10.dp, vertical = 4.dp)
                     ) {
-                        Text(
-                            text = "VALID TILL $date",
-                            color = Color.White,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Medium
-                        )
+
+                            Text(
+                                text = "VALID TILL $date",
+                                color = Color.White,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
-                    Column {
+                    Column (modifier = Modifier.padding(top=
+                        if(date.isNullOrEmpty()) 24.dp else 0.dp
+                    )){
                         // Offer Row
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -709,14 +1031,14 @@ fun CouponCard(offer: Offer) {
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 Text(
-                    text = offer.heading,
+                    text = offer.heading?:"",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.Black
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = offer.terms,
+                    text = offer.terms?:"",
                     fontSize = 14.sp,
                     color = Color(0xFF6B7280),
                     modifier = Modifier.padding(top = 2.dp),

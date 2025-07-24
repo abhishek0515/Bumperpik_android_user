@@ -6,6 +6,8 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
 import com.bumperpick.bumperickUser.API.New_model.refreshtoken
+import com.bumperpick.bumperpickvendor.API.Model.success_model
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.firstOrNull
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -64,7 +66,12 @@ suspend fun <T> safeApiCall(
                     return ApiResult.Error("No token found for refresh")
                 }
             } else {
-                ApiResult.Error("Error: ${response.message()}", response.code())
+                val errorBody = response.errorBody()?.string()
+                val gson = Gson()
+                val errorResponse = gson.fromJson(errorBody, success_model::class.java)
+
+                Log.d("Error",errorResponse.message?:"")
+                ApiResult.Error("Error: ${errorResponse.message}", response.code())
             }
         }
     } catch (e: Exception) {

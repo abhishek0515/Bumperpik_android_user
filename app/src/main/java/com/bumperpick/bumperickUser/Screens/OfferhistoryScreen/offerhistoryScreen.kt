@@ -112,7 +112,7 @@ fun offerhistoryScreen(  onBackClick: () -> Unit,
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Offer history",
+                                text = "Offer History",
                                 color = Color.Black,
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.Bold
@@ -168,7 +168,7 @@ fun offerhistoryScreen(  onBackClick: () -> Unit,
                                         Image(painter = painterResource(R.drawable.left), contentDescription = null, modifier = Modifier.size(12.dp))
                                         Spacer(modifier = Modifier.width(10.dp))
                                         Text(
-                                            text = "${filteredList.size} Offer availed",
+                                            text = "${filteredList.size} OFFER AVAILED",
                                             letterSpacing = 2.sp, // Use sp for text spacing, not dp
                                             color = Color.Gray,
                                             fontSize = 16.sp,
@@ -195,6 +195,7 @@ fun offerhistoryScreen(  onBackClick: () -> Unit,
                                 }
                                 else {
                                     items(filteredList) {
+
                                         val dataxx=DataXX(
                                             create_at = it.create_at,
                                             customer_id = it.customer_id,

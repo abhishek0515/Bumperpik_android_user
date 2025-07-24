@@ -215,6 +215,9 @@ fun OfferScreen(homeclick:(HomeClick)->Unit,open_subID:(sub_cat_id:String,sub_ca
             LocationCard(onCartClick = {
                 homeclick(HomeClick.CartClick)
             },
+                onFavClick = {
+                    homeclick(HomeClick.FavClick)
+                },
                 content = {
                     OutlinedTextField(
                         value = cat_searchQuery,
@@ -413,6 +416,8 @@ fun SubCategoriesContent(
                 val filteredSubCategories = subCategoriesState.data.filter {
                     it.name.contains(searchQuery, ignoreCase = true)
                 }
+
+
 
                 // Show search results info
                 if (searchQuery.isNotEmpty()) {

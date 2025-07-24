@@ -1,13 +1,18 @@
 package com.bumperpick.bumperickUser.Screens.Home
 
+import android.util.Log
 import android.view.View
+import androidx.compose.runtime.MutableState
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bumperpick.bumperickUser.API.Model.DataXXXXXX
 import com.bumperpick.bumperickUser.API.New_model.Category
 import com.bumperpick.bumperickUser.API.New_model.CustomerOfferDetail
 import com.bumperpick.bumperickUser.API.New_model.Offer
 import com.bumperpick.bumperickUser.API.New_model.OfferHistoryModel
 import com.bumperpick.bumperickUser.API.New_model.cartDetails
+import com.bumperpick.bumperickUser.API.New_model.trendingSearchModel
 import com.bumperpick.bumperickUser.Repository.OfferRepository
 import com.bumperpick.bumperickUser.Repository.Result
 import com.bumperpick.bumperpickvendor.API.Model.success_model
@@ -21,11 +26,25 @@ sealed class UiState<out T> {
     object Empty : UiState<Nothing>()
 }
 
+data class OfferFilter(
+    val subcatId: String = "",
+    val categoriesId: List<String> = emptyList(),
+    val sortBy: String = "",
+    val distanceFilter: String = "",
+    val search: String = ""
+)
 class HomePageViewmodel(val offerRepository: OfferRepository):ViewModel() {
 
 
     private val _offer_uiState = MutableStateFlow<UiState<List<Offer>>>(UiState.Empty)
     val offer_uiState: StateFlow<UiState<List<Offer>>> = _offer_uiState
+    private val _fav_offer_uiState = MutableStateFlow<UiState<List<DataXXXXXX>>>(UiState.Empty)
+    val fav_offer_uiState: StateFlow<UiState<List<DataXXXXXX>>> = _fav_offer_uiState
+
+        private val _trendSearch_uiState = MutableStateFlow<UiState<trendingSearchModel>>(UiState.Empty)
+    val trendSearch_uiState: StateFlow<UiState<trendingSearchModel>> = _trendSearch_uiState
+
+
 
     private val _offer_details_uiState = MutableStateFlow<UiState<Offer>>(UiState.Empty)
     val offer_details_uiState: StateFlow<UiState<Offer>> = _offer_details_uiState
@@ -47,7 +66,55 @@ class HomePageViewmodel(val offerRepository: OfferRepository):ViewModel() {
 
     private val _rating_uiState= MutableStateFlow<UiState<success_model>>(UiState.Empty)
     val rating_state:StateFlow<UiState<success_model>> =_rating_uiState
+
+    private val _fav_toogle_uiState=MutableStateFlow<UiState<success_model>>(UiState.Empty)
+
+    val fav_toogle_uiState: StateFlow<UiState<success_model>> =_fav_toogle_uiState
+
+    private val _currentOfferFilter = MutableStateFlow(OfferFilter())
+    val currentOfferFilter: StateFlow<OfferFilter> = _currentOfferFilter
+    fun getTrendingSearches(){
+        viewModelScope.launch {
+            val result=offerRepository.trendingSearch()
+            _trendSearch_uiState.value=when(result){
+                is Result.Error -> UiState.Error(result.message)
+                Result.Loading -> UiState.Loading
+                is Result.Success -> UiState.Success(result.data)
+            }
+        }
+    }
+    fun toogle_fav(offerId: String,fetch_data_again: Boolean=false){
+        viewModelScope.launch {
+            val result=offerRepository.fav_toogle(offerId)
+            _fav_toogle_uiState.value =when(result){
+                is Result.Error -> UiState.Error(result.message)
+                Result.Loading -> UiState.Loading
+                is Result.Success -> UiState.Success(result.data)
+            }
+            if(fetch_data_again){
+                getOffers()
+              //  _fav_toogle_uiState.value= UiState.Empty
+            }
+        }
+    }
     
+    fun getfav(){
+        viewModelScope.launch { 
+            val result=offerRepository.fav_offer()
+            _fav_offer_uiState.value= when(result){
+                
+                 is Result.Error -> {
+                     UiState.Error(result.message)
+                 }
+                 Result.Loading -> {
+                     UiState.Loading
+                 }
+                 is Result.Success-> {
+                     UiState.Success(result.data)
+                 }
+             }
+        }
+    }
     fun getCategory(){
       viewModelScope.launch {
           val result=offerRepository.getCategories()
@@ -62,19 +129,83 @@ class HomePageViewmodel(val offerRepository: OfferRepository):ViewModel() {
 
 
 
-    fun getOffers(subcat_id: String ="", cat_id: String ="") {
+
+    fun getOffers(
+        removeads: Boolean = false
+    ) {
         viewModelScope.launch {
-           val result= offerRepository.getOffers(subcat_id=subcat_id, cat_id = cat_id)
-            when(result){
+            val currentFilter = _currentOfferFilter.value
+            _offer_uiState.value = UiState.Loading
+            Log.d("getoffers", "Remove Ads: $removeads")
+
+            val result = offerRepository.getOffers(currentFilter, showads = true)
+
+            when (result) {
                 is Result.Error -> {
-                    _offer_uiState.value=UiState.Error(result.message)
+                    _offer_uiState.value = UiState.Error(result.message)
                 }
-                Result.Loading -> _offer_uiState.value=UiState.Loading
-                is Result.Success ->_offer_uiState.value=UiState.Success(result.data)
+                Result.Loading -> {
+                    _offer_uiState.value = UiState.Loading
+                }
+                is Result.Success -> {
+                    val filteredData = if (removeads) {
+                        result.data.filter { !it.is_ads }
+                    } else {
+                        result.data
+                    }
+                    _offer_uiState.value = UiState.Success(filteredData)
+                }
             }
         }
     }
 
+    fun updateFilterAndLoadOffers(
+        subcatId: String? = null,
+        categoriesId: List<String>? = null,
+        sortBy: String? = null,
+        distanceFilter: String? = null,
+        search: String? = null
+    ) {
+        val currentFilter = _currentOfferFilter.value
+        val newFilter = currentFilter.copy(
+            subcatId = subcatId ?: currentFilter.subcatId,
+            categoriesId = categoriesId ?: currentFilter.categoriesId,
+            sortBy = sortBy ?: currentFilter.sortBy,
+            distanceFilter = distanceFilter ?: currentFilter.distanceFilter,
+            search = search ?: currentFilter.search
+        )
+        _currentOfferFilter.value = newFilter
+        getOffers(
+            removeads = newFilter.search.isNotEmpty()
+        ) // Reload offers with the updated filter
+    }
+
+    // Convenience functions for UI components to update specific filters
+    fun updateCategories(newCategories: List<String>) {
+        updateFilterAndLoadOffers(categoriesId = newCategories)
+    }
+
+    fun updateSortBy(newSortBy: String) {
+        updateFilterAndLoadOffers(sortBy = newSortBy)
+    }
+
+    fun updateDistanceFilter(newDistanceFilter: String) {
+        updateFilterAndLoadOffers(distanceFilter = newDistanceFilter)
+    }
+
+    fun updateSearch(newSearch: String) {
+        updateFilterAndLoadOffers(search = newSearch)
+    }
+
+    fun updateSubcatid(subcatId: String) {
+        updateFilterAndLoadOffers(subcatId  = subcatId)
+    }
+
+    // You can also add a function to reset all filters
+    fun resetFilters() {
+        _currentOfferFilter.value = OfferFilter()
+        getOffers()
+    }
     fun getOfferDetails(id:String) {
         viewModelScope.launch {
             val result= offerRepository.getOfferDetails(id)
@@ -169,9 +300,18 @@ class HomePageViewmodel(val offerRepository: OfferRepository):ViewModel() {
             when(result){
                 is Result.Error -> _rating_uiState.value=UiState.Error(result.message)
                 Result.Loading -> _rating_uiState.value=UiState.Loading
-                is Result.Success -> _rating_uiState.value=UiState.Success(result.data)
+                is Result.Success -> {
+
+                    _rating_uiState.value = UiState.Success(result.data)
+                }
             }
         }
+    }
+
+    fun free_fav() {
+      viewModelScope.launch {
+          _fav_toogle_uiState.value= UiState.Empty
+      }
     }
 
 

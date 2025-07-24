@@ -60,7 +60,9 @@ fun offer_subcat( subcatId:String,subcatName:String,cat_id:String, onBackClick:(
     val context= LocalContext.current
     val offerDetails = viewmodel.offer_uiState.collectAsState().value
     LaunchedEffect(Unit) {
-        viewmodel.getOffers(subcat_id = subcatId,cat_id=cat_id)
+        viewmodel.updateCategories(listOf(cat_id))
+        viewmodel.updateSubcatid(subcatId)
+        viewmodel.getOffers()
     }
 
     Column(
@@ -202,14 +204,45 @@ fun offer_subcat( subcatId:String,subcatName:String,cat_id:String, onBackClick:(
 
                 }
                 is UiState.Success -> {
-                    val data=offerDetails.data.filter { !it.expire }
+                    val data = offerDetails.data.filter { !it.expire }
                     val filteredCategories = data.filter {
-                        it.title.contains(sub_cat_searchQuery, ignoreCase = true)
+                        (it.title ?: "").contains(sub_cat_searchQuery, ignoreCase = true)
                     }
+                    if (filteredCategories.isEmpty()) {
+                        item {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(24.dp)
+                            ) {
+                                Image(
+                                    painter = painterResource(R.drawable.artwork),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(100.dp)
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(
+                                    "No offers available.",
+                                    modifier = Modifier.padding(horizontal = 0.dp).fillMaxWidth(),
+                                    textAlign = TextAlign.Center,
+                                    color = BtnColor
+                                )
+                            }
+                        }
+                    } else {
+                        items(filteredCategories,) {
+                            HomeOfferView(
+                                offerModel = it,
+                                offerClick = {
+                                    homeclick(HomeClick.OfferClick(it,))
+                                },
+                                liketheoffer = {
+                                    viewmodel.toogle_fav(it, true)
+                                },
+                                shareoffer = {
+                                    shareReferral(context, it)
+                                }
 
-                    items(filteredCategories) {
-                        HomeOfferView(it) {
-                            homeclick(HomeClick.OfferClick(it))
+                            )
                         }
                     }
                 }

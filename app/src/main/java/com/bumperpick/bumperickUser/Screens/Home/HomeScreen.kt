@@ -121,7 +121,7 @@ fun HomeScreen(onHomeClick: (HomeClick)->Unit,
 
                 when(selectedTab){
                     0->{
-                        home(homeclick = onHomeClick, gotoEvent = {
+                        Home(homeClick = onHomeClick, gotoEvent = {
                             onEventClick()
                         })
                     }

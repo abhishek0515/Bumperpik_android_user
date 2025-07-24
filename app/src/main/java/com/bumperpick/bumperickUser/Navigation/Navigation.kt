@@ -1,7 +1,10 @@
 package com.bumperpick.bumperickUser.Navigation
 
+
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
@@ -11,22 +14,31 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.bumperpick.bumperickUser.Screens.Campaign.EventForm
 import com.bumperpick.bumperickUser.Screens.Campaign.EventScreen
+import com.bumperpick.bumperickUser.Screens.Component.YouTubeLiveVideoPlayer
 import com.bumperpick.bumperickUser.Screens.EditProfile.EditProfile
 import com.bumperpick.bumperickUser.Screens.Event.EventDetailScreen
 import com.bumperpick.bumperickUser.Screens.Event.EventScreenMain
+import com.bumperpick.bumperickUser.Screens.Faq.faq
 import com.bumperpick.bumperickUser.Screens.Home.AccountClick
 import com.bumperpick.bumperickUser.Screens.Home.Cart
 import com.bumperpick.bumperickUser.Screens.Home.ChooseLocation
 import com.bumperpick.bumperickUser.Screens.Home.HomeClick
 import com.bumperpick.bumperickUser.Screens.Home.Homepage
 import com.bumperpick.bumperickUser.Screens.Home.OfferDetails
-import com.bumperpick.bumperickUser.Screens.Home.OfferSearchPage
+
+import com.bumperpick.bumperickUser.Screens.Home.OfferSearchScreen
 import com.bumperpick.bumperickUser.Screens.Home.SubCategoryPage
 import com.bumperpick.bumperickUser.Screens.Home.offer_subcat
 import com.bumperpick.bumperickUser.Screens.Login.Login
 import com.bumperpick.bumperickUser.Screens.OTP.OtpScreen
 import com.bumperpick.bumperickUser.Screens.Splash.Splash
 import com.bumperpick.bumperickUser.Screens.StartScreen.StartScreen
+import com.bumperpick.bumperickUser.Screens.Support.SupportTicketsScreen
+import com.bumperpick.bumperickUser.Screens.Support.TicketDetailsScreen
+import com.bumperpick.bumperickUser.Screens.favourite.FavouriteScreen
+
+
+
 import com.bumperpick.bumperpickvendor.Screens.OfferhistoryScreen.offerhistoryScreen
 fun show_toast(message:String,context: Context){
     Toast.makeText(context,message,Toast.LENGTH_SHORT).show()
@@ -123,7 +135,8 @@ fun AppNavigation() {
                         HomeClick.LocationClick -> {}
                         is HomeClick.OfferClick -> { navController.navigate(Screen.OfferDetail.withOfferId(it.offerId))}
                         HomeClick.SearchClick -> {}
-                        is HomeClick.CategoryClick -> TODO()
+                        is HomeClick.CategoryClick -> {}
+                        HomeClick.FavClick -> {}
                     }
                 }
 
@@ -157,6 +170,10 @@ fun AppNavigation() {
                         val categoryIdInt = category.id.toString()
                         navController.navigate(Screen.SubCatPage.witcatId(categoryIdInt, category.name))
                     }
+
+                    HomeClick.FavClick -> {
+                        navController.navigate(Screen.FavouriteScreen.route)
+                    }
                 }
             },
                 open_subID = {sub_cat_id, sub_cat_name,cat_id ->
@@ -183,6 +200,18 @@ fun AppNavigation() {
 
                         AccountClick.EventClick -> {
                             navController.navigate(Screen.EventScreen2.route)
+                        }
+
+                        AccountClick.CampaignClick ->{navController.navigate(Screen.EventScreen.route)}
+                        AccountClick.FavClick ->{
+                            navController.navigate(Screen.FavouriteScreen.route)
+                        }
+
+                        AccountClick.FaqClick -> {
+                            navController.navigate(Screen.Faq.route)
+                        }
+                        AccountClick.mailToAdmin -> {
+                            navController.navigate(Screen.emailadmin.route)
                         }
                     }
                 }
@@ -215,7 +244,7 @@ fun AppNavigation() {
             OfferDetails(offerId, onBackClick = {navController.popBackStack()},is_offer_or_history!!)
         }
         composable(route=Screen.Search.route){
-            OfferSearchPage(onBackClick = {navController.popBackStack()}, onHomeClick = {
+            OfferSearchScreen( onBackClick = {navController.popBackStack()},homeClick = {
                 when(it){
                     HomeClick.CartClick -> {
 
@@ -233,8 +262,13 @@ fun AppNavigation() {
                     is HomeClick.CategoryClick -> {
 
                     }
+
+                    HomeClick.FavClick -> {
+                        
+                    }
                 }
-            })
+            },
+               )
         }
 
         composable(
@@ -272,6 +306,9 @@ fun AppNavigation() {
             },
                 gotoEventRegister = {
                     navController.navigate(Screen.EventForm.withid(eventId = it.id.toString(), eventName = it.title))
+                },
+                onFavClick = {
+                    navController.navigate(Screen.FavouriteScreen.route)
                 })
         }
         composable(route=Screen.EventForm.route,
@@ -288,7 +325,7 @@ fun AppNavigation() {
             EventForm(eventName = eventname, eventId = eventId, onBackClick = {
                 navController.popBackStack()
             }, onRegistrationSuccess = {
-                show_toast("Event Registered Successfully",context)
+                show_toast("Registered Successfully",context)
                 navController.popBackStack()
             })
 
@@ -306,19 +343,86 @@ fun AppNavigation() {
                 onBackClick = {
                     navController.popBackStack()
                 },
+                onFavClick = {
+                    navController.navigate(Screen.FavouriteScreen.route)
+                },
                 gotoEventDetail = {
                     navController.navigate(Screen.EventScreenDetail.withid(it))
                 }
             )
         }
+        composable(route= Screen.YoutubeView.route,
+            arguments = listOf(navArgument(Screen.Url, builder = {type= NavType.StringType})))
+        {
+                navBackStackEntry->
+            val url=navBackStackEntry.arguments?.getString(Screen.Url)?:""
+            YouTubeLiveVideoPlayer(url)
+        }
         composable(route=Screen.EventScreenDetail.route,
             arguments = listOf(navArgument(Screen.EVENT_ID, builder = {type=NavType.StringType}
         ))){navBackStackEntry->
             val eventId=navBackStackEntry.arguments?.getString(Screen.EVENT_ID)?:""
-           EventDetailScreen(onBackClick = {navController.popBackStack()},eventId.toInt())
+           EventDetailScreen(onBackClick = {navController.popBackStack()},eventId=eventId.toInt(),
+               onOpenWebView = {
+                   Log.d("navUrl",it)
+                   navController.navigate(Screen.YoutubeView.withurl(it))
+
+           })
 
 
             }
+        composable(route= Screen.Faq.route){
+            faq(onBackClick = {navController.popBackStack()})
+        }
+        composable(route= Screen.FavouriteScreen.route){
+            FavouriteScreen(onBackClick = {navController.popBackStack()}, homeClick = {
+                when(it){
+                    HomeClick.CartClick -> {
+
+                    }
+                    HomeClick.LocationClick -> {
+
+                    }
+                    is HomeClick.OfferClick -> {
+                        navController.navigate(Screen.OfferDetail.withOfferId(it.offerId))
+                    }
+
+                    HomeClick.SearchClick ->{
+
+                    }
+                    is HomeClick.CategoryClick -> {
+
+                    }
+
+                    HomeClick.FavClick -> {}
+                }
+            })
+        }
+        composable(route= Screen.emailadmin.route){
+
+            SupportTicketsScreen(onBackPressed = {navController.popBackStack()},
+                gototicketdetail ={id->
+                    navController.navigate(Screen.ticketdetail.withid(id))
+
+        })
+        }
+
+        composable(route= Screen.ticketdetail.route,
+            arguments = listOf(
+                navArgument(Screen.TICKET_ID,
+                builder ={ NavType.StringType}
+                )
+            )
+        )
+        { navBackStackEntry->
+            val ticketId=navBackStackEntry.arguments?.getString(Screen.TICKET_ID)?:""
+
+            TicketDetailsScreen(ticketId = ticketId,
+                onBackPressed = {
+                navController.popBackStack()
+            })
+
+        }
 
     }
 }

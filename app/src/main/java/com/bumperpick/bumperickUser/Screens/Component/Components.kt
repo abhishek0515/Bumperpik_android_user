@@ -1,9 +1,14 @@
 package com.bumperpick.bumperickUser.Screens.Component
 
+import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
+import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
@@ -45,11 +50,17 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.ArrowDropDown
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Notifications
@@ -60,7 +71,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -76,12 +87,15 @@ import com.bumperpick.bumperickUser.ui.theme.BtnColor
 import com.bumperpick.bumperickUser.ui.theme.satoshi_regular
 
 import androidx.compose.material3.*
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -110,14 +124,163 @@ import com.bumperpick.bumperickUser.Screens.Home.HomePageViewmodel
 import com.bumperpick.bumperickUser.Screens.Home.UiState
 import com.bumperpick.bumperickUser.Screens.Home.imageurls
 import com.bumperpick.bumperickUser.ui.theme.grey
+import com.bumperpick.bumperpickvendor.API.Model.success_model
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.androidx.compose.koinViewModel
+import kotlin.coroutines.cancellation.CancellationException
+@Composable
+fun LocationCard(
+    modifier: Modifier = Modifier,
+    onNotificationClick: () -> Unit = {},
+    onLocationClick: () -> Unit = {},
+    onCartClick: () -> Unit = {},
+    onFavClick: () -> Unit = {},
+    content: @Composable ColumnScope.() -> Unit = {}
+) {
+    // Simple state management
+    var locationTitle by remember { mutableStateOf("Current Location") }
+    var locationSubtitle by remember { mutableStateOf("Tap to select location") }
 
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(
+            topStart = 0.dp,
+            topEnd = 0.dp,
+            bottomStart = 16.dp,
+            bottomEnd = 16.dp
+        ),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(Color(0xFF8B1538), Color(0xFF5A0E26)),
+                        radius = 800f
+                    )
+                )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 48.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
+            ) {
+                Column {
+                    // Location Row
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { onLocationClick() }
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Location Info
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.LocationOn,
+                                contentDescription = "Location",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            Column {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = locationTitle,
+                                        color = Color.White,
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+
+                                    Spacer(modifier = Modifier.width(4.dp))
+
+                                    Icon(
+                                        imageVector = Icons.Outlined.ArrowDropDown,
+                                        contentDescription = "Expand",
+                                        tint = Color.White.copy(alpha = 0.8f),
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+
+                                Text(
+                                    text = locationSubtitle,
+                                    color = Color.White.copy(alpha = 0.8f),
+                                    fontSize = 14.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+
+                        // Action Icons
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            IconButton(
+                                onClick = onCartClick,
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.ShoppingCart,
+                                    contentDescription = "Cart",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+
+                            IconButton(
+                                onClick = onFavClick,
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.icon),
+                                    contentDescription = "Favorites",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+
+                            IconButton(
+                                onClick = onNotificationClick,
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Notifications,
+                                    contentDescription = "Notifications",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    content()
+                }
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+    }
+}
 @Composable
 fun TextFieldView(
     value: String,
@@ -366,245 +529,6 @@ fun BottomNavigationBar(
     }
 }
 
-@Composable
-fun LocationCard(
-    modifier: Modifier = Modifier,
-    onNotificationClick: () -> Unit = {},
-    onLocationClick: () -> Unit = {},
-    onCartClick: () -> Unit = {},
-    content: @Composable ColumnScope.() -> Unit = {}
-) {
-    val context = LocalContext.current
-    val locationHelper = remember { LocationHelper(context) }
-    var locationTitle by remember { mutableStateOf("") }
-    var locationSubtitle by remember { mutableStateOf("") }
-    var isLocationLoading by remember { mutableStateOf(true) }
-    var locationError by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        try {
-            val locationPair = locationHelper.getCurrentAddress()
-            locationTitle = locationPair.first.ifEmpty { "Unknown Location" }
-            locationSubtitle = locationPair.second.ifEmpty { "Tap to set location" }
-            isLocationLoading = false
-            locationError = false
-        } catch (e: Exception) {
-            locationTitle = "Location Error"
-            locationSubtitle = "Tap to retry"
-            isLocationLoading = false
-            locationError = true
-        }
-    }
-
-    var size by remember { mutableStateOf(IntSize.Zero) }
-
-    val backgroundModifier = remember(size) {
-        if (size.width > 0 && size.height > 0) {
-            val radius = maxOf(size.width, size.height) / 1.5f
-            Modifier.background(
-                brush = Brush.radialGradient(
-                    colors = listOf(Color(0xFF8B1538), Color(0xFF5A0E26)),
-                    center = Offset(size.width / 2f, size.height / 2f),
-                    radius = radius
-                )
-            )
-        } else {
-            Modifier.background(Color(0xFF8B1538))
-        }
-    }
-
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .onSizeChanged { size = it },
-        shape = RoundedCornerShape(
-            topStart = 0.dp,
-            topEnd = 0.dp,
-            bottomStart = 16.dp,
-            bottomEnd = 16.dp
-        ),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(modifier = Modifier.then(backgroundModifier)) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 48.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
-            ) {
-                Column {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable { onLocationClick() }
-                            .padding(vertical = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Enhanced Location Row
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            // Location Icon with loading state
-                            Box(
-                                modifier = Modifier.size(24.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (isLocationLoading) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(18.dp),
-                                        color = Color.White,
-                                        strokeWidth = 2.dp
-                                    )
-                                } else {
-
-                                    Icon(
-                                        imageVector = if (locationError) {
-                                            Icons.Outlined.LocationOn
-                                        } else {
-                                            Icons.Outlined.LocationOn
-                                        },
-                                        contentDescription = "Location",
-                                        tint = if (locationError) {
-                                            Color.White.copy(alpha = 0.7f)
-                                        } else {
-                                            Color.White
-                                        },
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.width(8.dp))
-
-                            // Location Text with better styling
-                            Column(
-                                verticalArrangement = Arrangement.spacedBy(0.dp)
-                            ) {
-                                Row {
-
-
-                                    Text(
-                                        text = if (isLocationLoading) "Getting location..." else locationTitle,
-                                        color = Color.White,
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        letterSpacing = 0.5.sp,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-
-                                    // Animated dropdown arrow
-                                    Icon(
-                                        imageVector = Icons.Outlined.ArrowDropDown,
-                                        contentDescription = "Expand location options",
-                                        tint = Color.White.copy(alpha = 0.8f),
-                                        modifier = Modifier
-                                            .size(20.dp)
-                                            .padding(start = 2.dp)
-                                    )
-                                }
-
-                                AnimatedVisibility(
-                                    visible = !isLocationLoading,
-                                    enter = fadeIn() + slideInVertically(),
-                                    exit = fadeOut() + slideOutVertically()
-                                ) {
-                                    Text(
-                                        text = locationSubtitle,
-                                        color = Color.White.copy(alpha = 0.8f),
-                                        fontSize = 14.sp,
-                                        letterSpacing = 0.3.sp,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-                            }
-
-
-                        }
-
-                        // Action Icons with better spacing
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            // Cart Icon with subtle background
-                            IconButton(
-                                onClick = onCartClick,
-                                modifier = Modifier
-                                    .size(40.dp)
-
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.ShoppingCart,
-                                    contentDescription = "Shopping Cart",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-
-                            // Custom Icon Button
-                            IconButton(
-                                onClick = onNotificationClick,
-                                modifier = Modifier
-                                    .size(40.dp)
-
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.icon),
-                                    contentDescription = "Custom Action",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-
-                            // Notification Icon with badge support
-                            Box {
-                                IconButton(
-                                    onClick = onNotificationClick,
-                                    modifier = Modifier
-                                        .size(40.dp)
-
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Notifications,
-                                        contentDescription = "Notifications",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
-
-
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                    content()
-                }
-            }
-            Spacer(modifier = Modifier.height(10.dp))
-        }
-    }
-}
-
-
-data class category (
-        val catid:String,
-        val icon:String,
-        val name:String
-        )
-val categorylist= listOf(
-    category("1","","Fashion"),
-    category("2","","Hotel"),
-    category("3","","Cafe"),
-    category("4","","Dinning"),
-    category("5","","Dinning"),
-)
 
 
 @Composable
@@ -919,7 +843,12 @@ fun DottedDivider(
     }
 }
 @Composable
-fun HomeOfferView(offerModel: Offer, offerClick:(String)->Unit  ){
+fun HomeOfferView(offerModel: Offer,
+                  offerClick:(String)->Unit,
+                  liketheoffer:(String)->Unit={},
+                  shareoffer:(String)-> Unit={}
+                  ){
+
 
     Card (
         modifier = Modifier
@@ -941,6 +870,77 @@ fun HomeOfferView(offerModel: Offer, offerClick:(String)->Unit  ){
                 }
                 AutoImageSlider(imageUrls = imagelist, height = 180.dp)
                 if(!offerModel.is_ads) {
+                    Column(modifier = Modifier.align(Alignment.TopEnd)) {
+                        Box(
+                            modifier = Modifier
+                                .padding(start=16.dp,end=16.dp,top=16.dp, bottom = 8.dp)
+                                .background(
+                                    color = Color.Gray.copy(0.3f),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .border(
+                                    0.5.dp,
+                                    Color.White,
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .clickable { liketheoffer(offerModel.id.toString()) }
+                                .padding(4.dp),
+                        ) {
+                            Icon(
+                                if (offerModel.is_favourited) {
+                                    Icons.Outlined.Favorite
+                                } else {
+                                    Icons.Outlined.FavoriteBorder
+                                },
+                                contentDescription = "Like offer",
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .size(26.dp),
+                                tint =
+                                    if (offerModel.is_favourited) {
+                                        BtnColor
+                                    } else {
+                                        Color.White
+                                    }
+                            )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .padding(start=16.dp,end=16.dp,top=8.dp, bottom = 16.dp)
+                                .background(
+                                    color = Color.Gray.copy(0.3f),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .border(
+                                    0.5.dp,
+                                    Color.White,
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .clickable {
+                                    Log.d("shareoffer","click")
+                                    shareoffer("Check out this amazing offer: ${offerModel.title} - ${offerModel.heading}\nLocation: ${offerModel.address}\nOffer ID: ${offerModel.id}")
+                                    }
+                                .padding(4.dp),
+                        ) {
+                            Icon(
+                                Icons.Default.Share,
+                                contentDescription = "Share offer",
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .size(26.dp),
+                                tint =
+
+                                        Color.White
+
+                            )
+                        }
+
+
+                    }
+
+
+                
+                
                     Box(
                         modifier = Modifier
 
@@ -956,7 +956,9 @@ fun HomeOfferView(offerModel: Offer, offerClick:(String)->Unit  ){
                             .align(Alignment.BottomStart)
                     ) {
                         Text(
-                            text = "${offerModel.quantity} left",
+                            text  = if(offerModel?.is_unlimited==1){
+                                "Until Stock Last"
+                            }else "${offerModel?.quantity} left",
                             color = Color.Black,
                             fontSize = 14.sp,
                             modifier = Modifier.padding(vertical = 6.dp, horizontal = 12.dp)
@@ -977,9 +979,10 @@ fun HomeOfferView(offerModel: Offer, offerClick:(String)->Unit  ){
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.Top
-                    ) {
+                    )
+                    {
                         Text(
-                            text = offerModel.title,
+                            text = offerModel.title?:"",
                             fontSize = 22.sp,
                             fontFamily = satoshi_regular,
                             fontWeight = FontWeight.SemiBold,
@@ -1156,8 +1159,11 @@ fun CartOfferView(offerModel: DataXX, openQr: (id: String) -> Unit,deleteCart:(S
                             .background(Color.White)
                             .align(Alignment.BottomStart)
                     ) {
+
                         Text(
-                            text = "${offer?.quantity} left",
+                            text = if(offer?.is_unlimited==1){
+                                        "Until Stock Last"
+                            }else "${offer?.quantity} left",
                             color = Color.Black,
                             fontSize = 14.sp,
                             modifier = Modifier.padding(vertical = 6.dp, horizontal = 12.dp)

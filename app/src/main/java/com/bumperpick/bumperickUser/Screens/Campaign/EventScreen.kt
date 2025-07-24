@@ -75,6 +75,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun EventScreen(
     onBackClick: () -> Unit,
+    onFavClick:()-> Unit,
     onNotificationClick: () -> Unit = {},
     gotoEventRegister: (DataXXXXXX) -> Unit = {},
     viewmodel: EventScreenViewmodel = koinViewModel(),
@@ -185,7 +186,7 @@ fun EventScreen(
                     ) {
                         // Custom Icon Button
                         IconButton(
-                            onClick = onNotificationClick,
+                            onClick = onFavClick,
                             modifier = Modifier.size(44.dp)
                         ) {
                             Icon(
@@ -494,7 +495,7 @@ fun InfoRow(
     text: String,
     vectorIcon: Boolean = false,
     iconTint: Color = Color.Gray,
-    textColor: Color = Color.Gray
+    textColor: Color = Color.Black
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,

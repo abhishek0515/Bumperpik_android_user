@@ -19,7 +19,8 @@ class GoogleSignInRepository(
     private val context: Context,
     private val apiService: ApiService,
     private val dataStoreManager: DataStoreManager // <-- Injected
-) {
+)
+{
     private val _signInState = MutableStateFlow<GoogleSignInState>(GoogleSignInState.Idle)
     val signInState: StateFlow<GoogleSignInState> = _signInState.asStateFlow()
 

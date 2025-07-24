@@ -323,7 +323,7 @@ fun EventForm(
                             label = "Mobile Number",
                             isRequired = false,
                             value = mobile,
-                            onValueChange = { mobile = it.take(15) }, // Limit input length
+                            onValueChange = { mobile = it.take(10) }, // Limit input length
                             placeholder = "Enter your mobile number (optional)",
                             error = mobileError,
                             leadingIcon = Icons.Outlined.Phone,

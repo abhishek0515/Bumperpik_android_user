@@ -30,6 +30,8 @@ sealed class Screen(val route: String) {
         const val CAT_NAME="cat_name"
         const val EVENT_NAME="event_name"
         const val EVENT_ID="event_id"
+        const val Url="url"
+        const val TICKET_ID="ticket_id"
     }
     object EditProfile:Screen("edit_profile")
     object Search:Screen("search")
@@ -61,6 +63,22 @@ sealed class Screen(val route: String) {
         fun withid(eventId:Int):String{
             return "eventScreenDetail/$eventId"
         }
+    }
+
+    object YoutubeView: Screen("youtubeview/{$Url}"){
+        fun withurl(url:String):String{
+            return "youtubeview/$url"
+        }
+    }
+
+    object FavouriteScreen: Screen("favouritescreen")
+
+
+    object Faq: Screen("faq")
+    object emailadmin: Screen("emailadmin")
+
+    object ticketdetail: Screen("ticket_detail/{$TICKET_ID}"){
+        fun withid(id: String): String="ticket_detail/$id"
     }
 
 
