@@ -9,6 +9,9 @@ import androidx.datastore.core.DataStore
 
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.bumperpick.bumperickUser.data.LocationData
+
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -18,6 +21,8 @@ class DataStoreManager(private val context: Context) {
 
     companion object {
         private val USER_ID = stringPreferencesKey("user_id")
+
+        private val LOCATION= stringPreferencesKey("location")
         private val TOKEN=stringPreferencesKey("token")
     }
 
@@ -27,6 +32,19 @@ class DataStoreManager(private val context: Context) {
             prefs.remove(USER_ID)
             prefs.remove(TOKEN)
         }
+    }
+
+    suspend fun saveLocation(location: LocationData) {
+        dataStore.edit { prefs ->
+            prefs[LOCATION] = Gson().toJson(location)
+        }
+
+    }
+
+    val getLocation: Flow<LocationData?> = dataStore.data.map { prefs ->
+        Gson().fromJson<LocationData>(prefs[LOCATION], LocationData::class.java)
+
+
     }
     suspend fun saveUserId(token: String,userId:String) {
         dataStore.edit { prefs ->

@@ -39,6 +39,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,6 +59,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.bumperpick.bumperickUser.ui.theme.BtnColor
 import com.bumperpick.bumperickUser.ui.theme.grey
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -78,7 +80,14 @@ fun EventForm(
     var emailError by remember { mutableStateOf<String?>(null) }
     var mobileError by remember { mutableStateOf<String?>(null) }
     var isSubmitting by remember { mutableStateOf(false) }
-
+    val statusBarColor = Color(0xFF5A0E26) // Your desired color
+    val systemUiController = rememberSystemUiController()    // Change status bar color
+    SideEffect {
+        systemUiController.setStatusBarColor(
+            color = statusBarColor,
+            darkIcons = false // true for dark icons on light background
+        )
+    }
     // Snackbar state
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -201,11 +210,12 @@ fun EventForm(
         containerColor = Color.White,
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize()
+            .padding(paddingValues)) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
+
             ) {
                 // Enhanced Header with better styling
                 Surface(
@@ -219,7 +229,7 @@ fun EventForm(
                             .padding(
                                 start = 16.dp,
                                 end = 16.dp,
-                                top = 40.dp,
+                                top = 20.dp,
                                 bottom = 18.dp
                             ),
                         verticalAlignment = Alignment.CenterVertically
@@ -227,9 +237,9 @@ fun EventForm(
                         Icon(
                             imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                             contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onSurface,
+                            tint = Color.Black,
                             modifier = Modifier
-                                .size(24.dp)
+                                .size(36.dp)
                                 .clickable { onBackClick() }
                                 .padding(4.dp)
                         )

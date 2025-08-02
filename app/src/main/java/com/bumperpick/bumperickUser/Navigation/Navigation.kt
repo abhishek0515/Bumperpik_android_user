@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import com.bumperpick.bumperickUser.Screens.Campaign.EventForm
 import com.bumperpick.bumperickUser.Screens.Campaign.EventScreen
 import com.bumperpick.bumperickUser.Screens.Component.YouTubeLiveVideoPlayer
@@ -21,7 +22,7 @@ import com.bumperpick.bumperickUser.Screens.Event.EventScreenMain
 import com.bumperpick.bumperickUser.Screens.Faq.faq
 import com.bumperpick.bumperickUser.Screens.Home.AccountClick
 import com.bumperpick.bumperickUser.Screens.Home.Cart
-import com.bumperpick.bumperickUser.Screens.Home.ChooseLocation
+
 import com.bumperpick.bumperickUser.Screens.Home.HomeClick
 import com.bumperpick.bumperickUser.Screens.Home.Homepage
 import com.bumperpick.bumperickUser.Screens.Home.OfferDetails
@@ -29,6 +30,7 @@ import com.bumperpick.bumperickUser.Screens.Home.OfferDetails
 import com.bumperpick.bumperickUser.Screens.Home.OfferSearchScreen
 import com.bumperpick.bumperickUser.Screens.Home.SubCategoryPage
 import com.bumperpick.bumperickUser.Screens.Home.offer_subcat
+
 import com.bumperpick.bumperickUser.Screens.Login.Login
 import com.bumperpick.bumperickUser.Screens.OTP.OtpScreen
 import com.bumperpick.bumperickUser.Screens.Splash.Splash
@@ -36,7 +38,8 @@ import com.bumperpick.bumperickUser.Screens.StartScreen.StartScreen
 import com.bumperpick.bumperickUser.Screens.Support.SupportTicketsScreen
 import com.bumperpick.bumperickUser.Screens.Support.TicketDetailsScreen
 import com.bumperpick.bumperickUser.Screens.favourite.FavouriteScreen
-
+import com.bumperpick.bumperickUser.data.ChooseLocation
+import com.bumperpick.bumperpick_Vendor.Screens.NotificationScreen.NotificationScreen
 
 
 import com.bumperpick.bumperpickvendor.Screens.OfferhistoryScreen.offerhistoryScreen
@@ -137,6 +140,9 @@ fun AppNavigation() {
                         HomeClick.SearchClick -> {}
                         is HomeClick.CategoryClick -> {}
                         HomeClick.FavClick -> {}
+                        HomeClick.NotifyClick -> {
+                            navController.navigate(Screen.Notification.route)
+                        }
                     }
                 }
 
@@ -174,12 +180,19 @@ fun AppNavigation() {
                     HomeClick.FavClick -> {
                         navController.navigate(Screen.FavouriteScreen.route)
                     }
+
+                    HomeClick.NotifyClick -> {
+                        navController.navigate(Screen.Notification.route)
+                    }
                 }
             },
                 open_subID = {sub_cat_id, sub_cat_name,cat_id ->
                     navController.navigate(Screen.Offer_subcat.withsubcatId(sub_cat_id,sub_cat_name,cat_id))
                 },
                 onEventClick = {
+                    navController.navigate(Screen.EventScreen2.route)
+                },
+                onCampaignClick = {
                     navController.navigate(Screen.EventScreen.route)
                 },
                 onAccountClick = {
@@ -224,9 +237,9 @@ fun AppNavigation() {
         }
 
         composable(route=Screen.Location.route){
-            ChooseLocation{
+            ChooseLocation(onBackClick = {
                 navController.popBackStack()
-            }
+            })
         }
         composable(route =Screen.Cart.route){
             Cart(){
@@ -236,12 +249,18 @@ fun AppNavigation() {
         composable(route=Screen.OfferDetail.route,
             arguments = listOf(navArgument(Screen.OFFER_ID){
                 type=NavType.StringType
-            }, navArgument(Screen.is_offer_or_history){type=NavType.BoolType})
+            },
+                navArgument(Screen.is_offer_or_history){type=NavType.BoolType}),
+            deepLinks = listOf(
+                navDeepLink {
+                    uriPattern = "https://bumperick.com/offer/{${Screen.OFFER_ID}}/{${Screen.is_offer_or_history}}"
+                }
+            )
         ){ navBackStackEntry ->
             val offerId = navBackStackEntry.arguments?.getString(Screen.OFFER_ID)?:""
             val is_offer_or_history=navBackStackEntry.arguments?.getBoolean(Screen.is_offer_or_history)
 
-            OfferDetails(offerId, onBackClick = {navController.popBackStack()},is_offer_or_history!!)
+            OfferDetails(offerId, onBackClick = {navController.popBackStack()},is_offer_or_history?:false)
         }
         composable(route=Screen.Search.route){
             OfferSearchScreen( onBackClick = {navController.popBackStack()},homeClick = {
@@ -265,6 +284,10 @@ fun AppNavigation() {
 
                     HomeClick.FavClick -> {
                         
+                    }
+
+                    HomeClick.NotifyClick -> {
+                        navController.navigate(Screen.Notification.route)
                     }
                 }
             },
@@ -395,6 +418,9 @@ fun AppNavigation() {
                     }
 
                     HomeClick.FavClick -> {}
+                    HomeClick.NotifyClick -> {
+                        navController.navigate(Screen.Notification.route)
+                    }
                 }
             })
         }
@@ -422,6 +448,11 @@ fun AppNavigation() {
                 navController.popBackStack()
             })
 
+        }
+        composable(route= Screen.Notification.route){
+           NotificationScreen(onBackClick = {
+                navController.popBackStack()
+            })
         }
 
     }

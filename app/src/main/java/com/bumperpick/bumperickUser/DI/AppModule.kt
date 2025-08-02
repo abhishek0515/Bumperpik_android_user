@@ -17,11 +17,14 @@ import com.bumperpick.bumperickUser.Screens.Faq.FaqViewmodel
 import com.bumperpick.bumperickUser.Screens.Home.AccountViewmodel
 import com.bumperpick.bumperickUser.Screens.Home.CategoryViewModel
 import com.bumperpick.bumperickUser.Screens.Home.HomePageViewmodel
+import com.bumperpick.bumperickUser.Screens.Home.homeScreenViewmodel
 import com.bumperpick.bumperickUser.Screens.Login.GoogleSignInViewModel
 import com.bumperpick.bumperickUser.Screens.Login.LoginViewmodel
+import com.bumperpick.bumperickUser.Screens.NotificationScreen.NotificationViewmodel
 import com.bumperpick.bumperickUser.Screens.OTP.OtpViewModel
 import com.bumperpick.bumperickUser.Screens.Splash.SplashViewmodel
 import com.bumperpick.bumperickUser.Screens.Support.SupportViewModel
+import com.bumperpick.bumperickUser.data.LocationViewModel
 
 import com.bumperpick.bumperpickvendor.API.Provider.ApiService
 import org.koin.dsl.module
@@ -32,7 +35,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 val appModule = module {
     single {
         Retrofit.Builder()
-            .baseUrl("http://13.235.83.148/")
+            .baseUrl("http://13.200.242.189/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
@@ -59,6 +62,9 @@ val appModule = module {
     viewModel { EventViewmodel(get()) }
     viewModel { FaqViewmodel(get()) }
     viewModel { SupportViewModel(get()) }
+    viewModel { homeScreenViewmodel() }
+    viewModel { NotificationViewmodel(get()) }
+    viewModel { LocationViewModel(get ()) }
 
 
 

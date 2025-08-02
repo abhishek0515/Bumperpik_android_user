@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -51,6 +52,13 @@ android {
 }
 
 dependencies {
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("com.google.maps.android:maps-compose:4.3.3")
+
+
+    implementation("com.google.firebase:firebase-messaging:25.0.0")
+    implementation(platform("com.google.firebase:firebase-bom:34.0.0"))
     implementation("io.insert-koin:koin-android:3.5.3")
     implementation("io.insert-koin:koin-androidx-compose:3.5.3")
     implementation ("com.auth0:java-jwt:4.4.0")
@@ -72,6 +80,10 @@ dependencies {
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 // ViewModel
     implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation("androidx.media3:media3-exoplayer:1.5.0")
+    implementation("com.google.firebase:firebase-auth")
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+    implementation("androidx.media3:media3-ui:1.5.0")
 // build.gradle (app)
     implementation("com.google.zxing:core:3.5.1")
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.0")

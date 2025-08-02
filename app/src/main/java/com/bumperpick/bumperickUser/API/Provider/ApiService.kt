@@ -17,6 +17,7 @@ import com.bumperpick.bumperickUser.API.New_model.tickerdetails
 import com.bumperpick.bumperickUser.API.New_model.ticket_add_model
 import com.bumperpick.bumperickUser.API.New_model.ticketmessage
 import com.bumperpick.bumperickUser.API.New_model.trendingSearchModel
+import com.bumperpick.bumperpick_Vendor.API.FinalModel.Notification_model
 import com.bumperpick.bumperpickvendor.API.Model.Category_Model
 import com.bumperpick.bumperpickvendor.API.Model.Subscription
 import com.bumperpick.bumperpickvendor.API.Model.Vendor_Register_Model
@@ -44,11 +45,11 @@ import retrofit2.http.Query
 interface ApiService {
     @FormUrlEncoded
     @POST("api/customer/send-otp")
-    suspend  fun cust_send_otp(@Field("phone_number") mobile_number: String): Response<success_model>
+    suspend  fun cust_send_otp(@Field("phone_number", encoded = false) mobile_number: String): Response<success_model>
 
     @FormUrlEncoded
     @POST("api/customer/resend-otp")
-    suspend fun cust_re_send_otp(@Field("phone_number") mobile_number: String): Response<success_model>
+    suspend fun cust_re_send_otp(@Field("phone_number", encoded = false) mobile_number: String): Response<success_model>
 
     @FormUrlEncoded
     @POST("api/customer/verify-otp")
@@ -155,6 +156,16 @@ interface ApiService {
     @GET("api/customer/tickets/{id}")
     suspend fun ticket_detail(@Path("id")id: String, @Query("token")token: String): Response<tickerdetails>
 
+    @POST("api/vendor/device-token/update")
+    @FormUrlEncoded
+    suspend fun send_token(
+        @Field("token")token: String,
+        @Field("vendor_id")vendorId: String,
+        @Field("device_token")device_token: String,): Response<success_model>
+
+
+    @GET("api/customer/notifications")
+    suspend fun notification(@Query("token")token: String): Response<Notification_model>
     @POST("api/customer/tickets/{id}/reply")
     @FormUrlEncoded
     suspend fun ticket_reply(@Path("id")id: String,@FieldMap map: Map<String, String>): Response<success_model>
@@ -166,3 +177,5 @@ data class EventRegisterRequest(
     val email: String,
     val phone: String
 )
+
+

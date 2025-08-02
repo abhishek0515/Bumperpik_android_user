@@ -59,6 +59,7 @@ import com.bumperpick.bumperickUser.Navigation.show_toast
 import com.bumperpick.bumperickUser.R
 import com.bumperpick.bumperickUser.Screens.Component.AutoImageSlider
 import com.bumperpick.bumperickUser.Screens.Component.DottedDivider
+import com.bumperpick.bumperickUser.Screens.Component.MediaSlider
 import com.bumperpick.bumperickUser.Screens.Component.SearchCard
 import com.bumperpick.bumperickUser.Screens.Home.HomeClick
 import com.bumperpick.bumperickUser.Screens.Home.HomePageViewmodel
@@ -248,13 +249,21 @@ private fun TopBar(
 
 @Composable
 private fun EmptyState() {
-    Box(modifier = Modifier.fillMaxSize()) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(24.dp)
+    ) {
+        Image(
+            painter = painterResource(R.drawable.artwork),
+            contentDescription = null,
+            modifier = Modifier.size(100.dp)
+        )
+        Spacer(modifier = Modifier.width(10.dp))
         Text(
-            text = "No offers available",
+            "No offers are in favourites.",
+            modifier = Modifier.padding(horizontal = 0.dp).fillMaxWidth(),
             textAlign = TextAlign.Center,
-            modifier = Modifier.align(Alignment.Center),
-            fontSize = 16.sp,
-            color = Color.Gray
+            color = BtnColor
         )
     }
 }
@@ -322,6 +331,28 @@ private fun FavouritesList(
             }
             Spacer(modifier = Modifier.height(12.dp))
         }
+        if(offers.isEmpty()){
+            item {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(24.dp)
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.artwork),
+                        contentDescription = null,
+                        modifier = Modifier.size(100.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        "No offers found",
+                        modifier = Modifier.padding(horizontal = 0.dp).fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        color = BtnColor
+                    )
+                }
+            }
+        }
+        else{
 
         items(offers) { offer ->
             FavOfferView(
@@ -329,6 +360,7 @@ private fun FavouritesList(
                 offerClick = onOfferClick,
                 showBottomSheet = onRemoveClick
             )
+        }
         }
 
         item {
@@ -442,8 +474,8 @@ fun FavOfferView(
     ) {
         Column {
             Box(modifier = Modifier.fillMaxWidth()) {
-                val imageList = offerModel.media.map { it.url }
-                AutoImageSlider(imageUrls = imageList, height = 180.dp)
+                val imageList = offerModel.media
+                MediaSlider(mediaList = imageList, height = 180.dp)
 
                 Box(
                     modifier = Modifier

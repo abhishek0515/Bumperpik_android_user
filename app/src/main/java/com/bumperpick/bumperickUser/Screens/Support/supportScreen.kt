@@ -577,8 +577,7 @@ fun TicketItem(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.Black,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    maxLines = 2,
                 )
 
                 Row(
@@ -681,8 +680,8 @@ fun TicketDetailsScreen(
                             color = Color.Black,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Medium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            maxLines = 2,
+
                         )
                     },
                     navigationIcon = {
@@ -921,9 +920,9 @@ private fun MessageCard(
                     Card (shape = CircleShape,
                         modifier = Modifier.size(36.dp),
                         colors = CardDefaults.cardColors(containerColor =
-                        if (message.author.type.lowercase() == "user")
-                            blue.copy(0.1f) else BtnColor.copy(0.1f)
-                    )){
+                            if (message.author.type.lowercase() == "user")
+                                blue.copy(0.1f) else BtnColor.copy(0.1f)
+                        )){
                         val errorpainter = rememberVectorPainter(image = Icons.Default.Person)
                         AsyncImage(model = message.author.image,
                             error = errorpainter,

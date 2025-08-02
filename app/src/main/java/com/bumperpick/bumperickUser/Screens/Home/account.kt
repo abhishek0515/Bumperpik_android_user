@@ -60,6 +60,19 @@ import com.bumperpick.bumperickUser.ui.theme.BtnColor
 import com.bumperpick.bumperickUser.ui.theme.grey
 import com.bumperpick.bumperickUser.ui.theme.satoshi_regular
 import org.koin.androidx.compose.koinViewModel
+
+import android.Manifest
+import android.app.NotificationManager
+
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.*
+
+import androidx.core.content.ContextCompat
 fun shareReferral(context: Context,text: String="Try this APP") {
     val intent = Intent().apply {
         action = Intent.ACTION_SEND
@@ -207,13 +220,61 @@ fun ReferralSettingsCard(onClick:(AccountClick)->Unit) {
     }
 }
 
+
+// Define your BtnColor here or import it from your theme
+
+
 @Composable
 fun ToggleButton() {
+    val context = LocalContext.current
     var isChecked by remember { mutableStateOf(false) }
+    var showPermissionDialog by remember { mutableStateOf(false) }
+
+    // Check initial notification permission state
+    LaunchedEffect(Unit) {
+        isChecked = isNotificationPermissionEnabled(context)
+    }
+
+    // Permission launcher for Android 13+ (API 33+)
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        isChecked = isGranted
+        if (!isGranted && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            showPermissionDialog = true
+        }
+    }
+
+    // Settings launcher for when user needs to manually enable/disable notifications
+    val settingsLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) {
+        // Recheck permission when returning from settings
+        isChecked = isNotificationPermissionEnabled(context)
+    }
 
     Switch(
         checked = isChecked,
-        onCheckedChange = { isChecked = it },
+        onCheckedChange = { isToggled ->
+            if (isToggled) {
+                // User wants to enable notifications
+                requestNotificationPermission(
+                    context = context,
+                    permissionLauncher = permissionLauncher,
+                    onPermissionResult = { granted ->
+                        isChecked = granted
+                        if (!granted) {
+                            showPermissionDialog = true
+                        }
+                    }
+                )
+            } else {
+                // User wants to disable notifications
+                // Since we can't programmatically disable notifications,
+                // guide user to settings
+                showPermissionDialog = true
+            }
+        },
         colors = SwitchDefaults.colors(
             checkedThumbColor = Color.White,
             checkedTrackColor = BtnColor,
@@ -221,6 +282,94 @@ fun ToggleButton() {
             uncheckedTrackColor = Color.Gray
         )
     )
+
+    // Permission dialog for when user needs to go to settings
+    if (showPermissionDialog) {
+        AlertDialog(
+            onDismissRequest = { showPermissionDialog = false },
+            title = { Text("Notification Permission") },
+            text = {
+                Text(
+                    if (isChecked) {
+                        "To disable notifications, please go to Settings > Apps > Bumperpick > Notifications and turn them off."
+                    } else {
+                        "To enable notifications, please go to Settings and allow notification permission for this app."
+                    }
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showPermissionDialog = false
+                        openAppSettings(context, settingsLauncher)
+                    }
+                ) {
+                    Text("Go to Settings")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showPermissionDialog = false }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+}
+
+// Function to check if notification permission is enabled
+fun isNotificationPermissionEnabled(context: Context): Boolean {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        // For Android 13+ (API 33+), check POST_NOTIFICATIONS permission
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+    } else {
+        // For older versions, check if notifications are enabled through NotificationManager
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.areNotificationsEnabled()
+    }
+}
+
+// Function to request notification permission
+fun requestNotificationPermission(
+    context: Context,
+    permissionLauncher: androidx.activity.result.ActivityResultLauncher<String>,
+    onPermissionResult: (Boolean) -> Unit
+) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        // For Android 13+, request POST_NOTIFICATIONS permission
+        when {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                onPermissionResult(true)
+            }
+            else -> {
+                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    } else {
+        // For older versions, notifications are enabled by default
+        // but user can disable them in system settings
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        onPermissionResult(notificationManager.areNotificationsEnabled())
+    }
+}
+
+// Function to open app settings
+fun openAppSettings(
+    context: Context,
+    settingsLauncher: androidx.activity.result.ActivityResultLauncher<Intent>
+) {
+    val intent = Intent().apply {
+        action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+        data = Uri.fromParts("package", context.packageName, null)
+    }
+    settingsLauncher.launch(intent)
 }
 
 sealed class AccountClick(){

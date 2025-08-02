@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -24,10 +25,13 @@ import com.bumperpick.bumperickUser.API.New_model.Category
 import com.bumperpick.bumperickUser.Screens.Home.HomePageViewmodel
 import com.bumperpick.bumperickUser.Screens.Home.UiState
 import com.bumperpick.bumperickUser.ui.theme.BtnColor
-
+enum class Type{
+    Distance,Category
+}
 data class FilterOption(
     val id: String,
     val label: String,
+    val type:Type,
     val isSelected: Boolean = false
 )
 
@@ -40,18 +44,18 @@ data class SortOption(
 class FilterManager() {
     
     private val _distanceOptions = mutableStateListOf(
-        FilterOption("1km", "Upto 1Km"),
-        FilterOption("3km", "Upto 3Km"),
-        FilterOption("5km", "Upto 5Km"),
-        FilterOption("10km", "Upto 10Km"),
-        FilterOption("beyond10km", "Beyond 10Km")
+        FilterOption("1", "Upto 1Km", type = Type.Distance),
+        FilterOption("3", "Upto 3Km", type = Type.Distance),
+        FilterOption("5", "Upto 5Km", type = Type.Distance),
+        FilterOption("10", "Upto 10Km", type = Type.Distance),
+        FilterOption("11", "Beyond 10Km", type = Type.Distance)
     )
 
     private val _categoryOptions =mutableStateListOf<FilterOption>()
     
     fun setCategories(categories: List<Category>) {
-        _categoryOptions.add(FilterOption("all","All"))
-      categories.forEach { _categoryOptions.add(FilterOption(id=it.id.toString(), label = it.name)) }
+        _categoryOptions.add(FilterOption("all","All", type = Type.Category))
+      categories.forEach { _categoryOptions.add(FilterOption(id=it.id.toString(), label = it.name, type = Type.Category)) }
     }
 
 
@@ -514,7 +518,30 @@ fun FilterSortScreen(
                     shape = RoundedCornerShape(24.dp),
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
                 ) {
+                    val selectedfilters = filterManager.getActiveFilters().size
 
+                    if (selectedfilters > 0) {
+                        Box(
+                            modifier = Modifier
+                                .size(20.dp)
+                                .background(
+                                    color = BtnColor, // or your preferred color
+                                    shape = CircleShape
+
+
+
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = selectedfilters.toString(),
+                                fontSize = 10.sp,
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(6.dp))
+                    }
 
                     Text("Filters", fontSize = 14.sp)
                     Spacer(modifier = Modifier.width(6.dp))

@@ -9,6 +9,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
@@ -53,6 +54,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
@@ -116,13 +118,25 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.AspectRatioFrameLayout
+import androidx.media3.ui.PlayerView
 import com.bumperpick.bumperickUser.API.New_model.Category
 import com.bumperpick.bumperickUser.API.New_model.DataXX
+import com.bumperpick.bumperickUser.API.New_model.Media
 import com.bumperpick.bumperickUser.API.New_model.Offer
 import com.bumperpick.bumperickUser.Misc.LocationHelper
 import com.bumperpick.bumperickUser.Screens.Home.HomePageViewmodel
 import com.bumperpick.bumperickUser.Screens.Home.UiState
 import com.bumperpick.bumperickUser.Screens.Home.imageurls
+import com.bumperpick.bumperickUser.data.LocationData
 import com.bumperpick.bumperickUser.ui.theme.grey
 import com.bumperpick.bumperpickvendor.API.Model.success_model
 import com.google.zxing.BarcodeFormat
@@ -143,12 +157,27 @@ fun LocationCard(
     onLocationClick: () -> Unit = {},
     onCartClick: () -> Unit = {},
     onFavClick: () -> Unit = {},
+    locationDetails: UiState<LocationData>,
     content: @Composable ColumnScope.() -> Unit = {}
 ) {
-    // Simple state management
-    var locationTitle by remember { mutableStateOf("Current Location") }
-    var locationSubtitle by remember { mutableStateOf("Tap to select location") }
 
+    // Simple state management
+    var locationTitle by remember { mutableStateOf( "Current Location")}
+    var locationSubtitle by remember { mutableStateOf( "Tap to select location")}
+    LaunchedEffect(locationDetails) {
+        when(locationDetails) {
+            UiState.Empty -> {}
+            is UiState.Error -> {
+
+            }
+
+            UiState.Loading -> {}
+            is UiState.Success -> {
+                locationTitle = locationDetails.data.area
+                locationSubtitle = locationDetails.data.city
+            }
+        }
+    }
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(
@@ -364,14 +393,14 @@ fun Google_SigInButton(modifier: Modifier=Modifier,onCLick:()->Unit) {
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .padding(vertical = 16.dp,)
+                .padding(vertical = 16.dp)
         ) {
             Image(
                 painter = painterResource(R.drawable.google_icon_logo_svgrepo_com),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .padding(end = 10.dp,)
+                    .padding(end = 10.dp)
                     .clip(shape = RoundedCornerShape(8.dp))
                     .width(18.dp)
                     .height(18.dp)
@@ -433,6 +462,7 @@ fun OtpView(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = BtnColor,
                     unfocusedBorderColor = Color.Gray,
+                    focusedTextColor = Color.Black,
                     disabledBorderColor = Color.Black,
                     focusedContainerColor = grey,
                     unfocusedContainerColor = grey,
@@ -491,14 +521,16 @@ fun BottomNavigationBar(
                             Icon(
                                 imageVector = it,
                                 contentDescription = item.contentDescription,
-                                tint = if (selectedTab == index) Color(0xFF3B82F6) else Color.Gray
+                                tint = if (selectedTab == index) Color(0xFF3B82F6) else Color.Gray,
+                                modifier = Modifier.size(30.dp).align(Alignment.CenterHorizontally)
                             )
                         }
                         item.painter?.let {
                             Icon(
                                 painter = it,
                                 contentDescription = item.contentDescription,
-                                tint = if (selectedTab == index) Color(0xFF3B82F6) else Color.Gray
+                                tint = if (selectedTab == index) Color(0xFF3B82F6) else Color.Gray,
+                                modifier = Modifier.size(30.dp).align(Alignment.CenterHorizontally)
                             )
                         }
                     }
@@ -597,7 +629,7 @@ fun AutoImageSlider(
     imageUrls: List<String>,
     height:Dp=150.dp,
     modifier: Modifier = Modifier,
-    autoSlideInterval: Long = 5000L, // 5 seconds
+    autoSlideInterval: Long = 5000000L, // 5 seconds
     slideAnimationDuration: Int = 800 // milliseconds
 ) {
     if (imageUrls.isEmpty()) return
@@ -732,29 +764,7 @@ enum class MarketingOption(val title: String) {
         val allOptions = values().toList()
     }
 }
-data class Media(
-    val id: String,
-    val type: String,
-    val url: String,
-    val s: String
-)
-data class HomeOffer(
-    val offerId:String="",
-    val Type:MarketingOption?=null,
-    val offerValid:OfferValidation?=null,
-    val Media_list:List<String> = emptyList(),
-    val discount:String="",
-    val startDate:String="",
-    val media:List<Media> =ArrayList(),
-    val approval:String="",
-    val endDate:String="",
-    val active:String="",
-    val offerTitle:String="",
-    val brand_logo_url:String?="",
-    val offerTag:String="",
-    val offerDescription:String="",
-    val termsAndCondition:String="",
-)
+
 private fun drawHorizontalDots(
     drawScope: DrawScope,
     color: Color,
@@ -843,6 +853,165 @@ fun DottedDivider(
     }
 }
 @Composable
+fun MediaSlider(
+    mediaList: List<Media>,
+    height: Dp = 150.dp,
+    modifier: Modifier = Modifier
+) {
+    if (mediaList.isEmpty()) return
+
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        pageCount = { mediaList.size }
+    )
+
+    Box(
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        // Media Pager
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+                .height(height),
+            pageSpacing = 8.dp
+        ) { page ->
+            MediaSliderItem(
+                media = mediaList[page],
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
+        // Dot Indicators
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(8.dp)
+        ) {
+            repeat(mediaList.size) { index ->
+                val isSelected = pagerState.currentPage == index
+                Box(
+                    modifier = Modifier
+                        .size(if (isSelected) 12.dp else 8.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (isSelected) BtnColor else BtnColor.copy(alpha = 0.5f)
+                        )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun MediaSliderItem(
+    media: Media,
+    modifier: Modifier = Modifier
+) {
+    when (media.type.lowercase()) {
+        "image" -> {
+            ImageSliderItem(
+                imageUrl = media.url,
+                modifier = modifier
+            )
+        }
+        "video" -> {
+            VideoSliderItem(
+                videoUrl = media.url,
+                modifier = modifier
+            )
+        }
+        else -> {
+            // Fallback to image for unknown types
+            ImageSliderItem(
+                imageUrl = media.url,
+                modifier = modifier
+            )
+        }
+    }
+}
+
+@OptIn(UnstableApi::class)
+@Composable
+fun VideoSliderItem(
+    videoUrl: String,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    // Create ExoPlayer instance
+    val exoPlayer = remember {
+        ExoPlayer.Builder(context)
+
+            .build()
+            .apply {
+                // Mute the video
+                volume = 0f
+                // Set to loop
+                repeatMode = Player.REPEAT_MODE_ONE
+            }
+    }
+
+    // Prepare media source
+    LaunchedEffect(videoUrl) {
+        val mediaItem = MediaItem.fromUri(videoUrl)
+        exoPlayer.setMediaItem(mediaItem)
+        exoPlayer.prepare()
+    }
+
+    // Handle lifecycle
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> {
+                    exoPlayer.play()
+                }
+
+                Lifecycle.Event.ON_STOP -> {
+                    exoPlayer.pause()
+                }
+
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            exoPlayer.release()
+        }
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .clip(RoundedCornerShape(8.dp)),
+        contentAlignment = Alignment.Center
+    ) {
+        AndroidView(
+            factory = { ctx ->
+                PlayerView(ctx).apply {
+                    player = exoPlayer
+                    // Hide controls for cleaner look
+                    useController = false
+                    // Set resize mode
+                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                }
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+
+
+    }
+}
+
+// Data class (already provided by user)
+
+@Composable
 fun HomeOfferView(offerModel: Offer,
                   offerClick:(String)->Unit,
                   liketheoffer:(String)->Unit={},
@@ -865,10 +1034,9 @@ fun HomeOfferView(offerModel: Offer,
         ){
         Column() {
             Box(modifier = Modifier.fillMaxWidth()){
-                val imagelist=offerModel.media.map {
-                    it.url
-                }
-                AutoImageSlider(imageUrls = imagelist, height = 180.dp)
+
+                MediaSlider(offerModel.media, height = 180.dp)
+
                 if(!offerModel.is_ads) {
                     Column(modifier = Modifier.align(Alignment.TopEnd)) {
                         Box(
@@ -1090,7 +1258,7 @@ fun CartOfferView(offerModel: DataXX, openQr: (id: String) -> Unit,deleteCart:(S
 
     val offer = offerModel.offer
     Log.d("offer",offer.toString())
-    val media = if (offer?.media?.isEmpty() == true) emptyList() else offerModel.offer?.media?.map { it.url }
+    val media = if (offer?.media?.isEmpty() == true) emptyList() else offerModel.offer?.media
 
     Card(
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).clickable { onCardClick(offer?.id.toString()) },
@@ -1114,7 +1282,7 @@ fun CartOfferView(offerModel: DataXX, openQr: (id: String) -> Unit,deleteCart:(S
 
                     // Image slider
                     if (media != null) {
-                        AutoImageSlider(imageUrls = media, height = 180.dp)
+                     MediaSlider(media, height = 180.dp)
                     }
                     if(showOpenQrBtn) {
                         Box(
@@ -1398,6 +1566,7 @@ fun SearchCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
+
             .padding(vertical = 8.dp, horizontal = 16.dp),
         shape = RoundedCornerShape(18.dp),
         border = BorderStroke(width = 1.dp, color = Color.Gray.copy(alpha = 0.3f)),

@@ -9,7 +9,7 @@ data class OfferX(
     val end_date: String,
     val heading: String,
     val id: Int,
-    val media: List<MediaXX>,
+    val media: List<Media>,
     val quantity: Int,
     val start_date: String,
     val subheading: Any,

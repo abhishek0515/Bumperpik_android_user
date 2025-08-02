@@ -50,22 +50,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModel
 import com.bumperpick.bumperickUser.R
 import com.bumperpick.bumperickUser.Screens.Component.BottomNavigationBar
 import com.bumperpick.bumperickUser.Screens.Component.LocationCard
 import com.bumperpick.bumperickUser.Screens.Component.LocationPermissionScreen
 import com.bumperpick.bumperickUser.Screens.Component.NavigationItem
+import org.koin.androidx.compose.koinViewModel
 
 
 @Composable
 fun Homepage(onHomeClick: (HomeClick)->Unit,
              open_subID:(sub_cat_id:String,sub_cat_name:String,cat_id:String)->Unit,
              onAccountClick:(AccountClick)->Unit,
-             onEventClick:()->Unit
+             onEventClick:()->Unit,
+             onCampaignClick: () -> Unit
              ){
 
-    HomeScreen(onHomeClick,
-        onEventClick,onAccountClick,open_subID)
+    HomeScreen(
+        viewmodel = koinViewModel (),
+        onHomeClick,
+        onEventClick,onCampaignClick,onAccountClick,open_subID)
 
     val context = LocalContext.current
     val locationPermission = ContextCompat.checkSelfPermission(
@@ -90,11 +95,21 @@ if (locationPermission != PackageManager.PERMISSION_GRANTED) {
 
 }
 
+class homeScreenViewmodel(): ViewModel(){
+    var selectedTab by mutableStateOf(0)
+    fun onTabSelected(index:Int){
+        selectedTab=index
+    }
+
+}
 @Composable
-fun HomeScreen(onHomeClick: (HomeClick)->Unit,
+fun HomeScreen(
+    viewmodel: homeScreenViewmodel,
+    onHomeClick: (HomeClick)->Unit,
                onEventClick:()->Unit,
+                onCampaignClick:()-> Unit,
                onAccountClick: (AccountClick) -> Unit,open_subID:(sub_cat_id:String,sub_cat_name:String,cat_id:String)->Unit,) {
-    var selectedTab by remember { mutableStateOf(0) }
+   val selectedTab = viewmodel.selectedTab
 
     Column(
         modifier = Modifier
@@ -110,7 +125,7 @@ fun HomeScreen(onHomeClick: (HomeClick)->Unit,
             NavigationItem("Home", icon = Icons.Outlined.Home, contentDescription = "Home"),
             NavigationItem("Categories", icon = Icons.Default.List, contentDescription = "Create offers"),
             NavigationItem("Contest", painter = painterResource(R.drawable.contest), contentDescription = "Contest"),
-            NavigationItem("Account", icon = Icons.Outlined.AccountCircle, contentDescription = "Account")
+            NavigationItem("More", painter = painterResource(R.drawable.more_horizontal_square_svgrepo_com), contentDescription = "Account")
         )
         Box(
             modifier = Modifier
@@ -123,7 +138,7 @@ fun HomeScreen(onHomeClick: (HomeClick)->Unit,
                     0->{
                         Home(homeClick = onHomeClick, gotoEvent = {
                             onEventClick()
-                        })
+                        }, gotoCampaign = {onCampaignClick()},)
                     }
                     1->{
                         OfferScreen(homeclick=onHomeClick, open_subID = open_subID)
@@ -146,7 +161,7 @@ fun HomeScreen(onHomeClick: (HomeClick)->Unit,
         BottomNavigationBar(
             items = navItems,
             selectedTab = selectedTab,
-            onTabSelected = { selectedTab = it }
+            onTabSelected = {viewmodel.onTabSelected(it)}
         )
 
     }

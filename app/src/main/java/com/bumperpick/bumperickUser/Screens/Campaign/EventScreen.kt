@@ -32,6 +32,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
@@ -39,6 +40,7 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -67,6 +69,7 @@ import com.bumperpick.bumperickUser.R
 import com.bumperpick.bumperickUser.ui.theme.BtnColor
 import com.bumperpick.bumperickUser.ui.theme.satoshi_bold
 import com.bumperpick.bumperickUser.ui.theme.satoshi_regular
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import org.koin.androidx.compose.koinViewModel
 
 // Define UiState sealed class if not already defined
@@ -88,7 +91,14 @@ fun EventScreen(
     }
 
     // Load events when the screen is first composed or tab changes
-
+    val statusBarColor = Color(0xFF5A0E26) // Your desired color
+    val systemUiController = rememberSystemUiController()    // Change status bar color
+    SideEffect {
+        systemUiController.setStatusBarColor(
+            color = statusBarColor,
+            darkIcons = false // true for dark icons on light background
+        )
+    }
 
     val gradientBrush = Brush.verticalGradient(
         colors = listOf(
@@ -102,11 +112,14 @@ fun EventScreen(
     val transparentBrush = Brush.horizontalGradient(
         colors = listOf(Color.Transparent, Color.Transparent)
     )
+    Scaffold {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(it)
             .background(Color(0xFFFAFAFA))
-    ) {
+    )
+    {
         var size by remember { mutableStateOf(IntSize.Zero) }
         val backgroundModifier = remember(size) {
             if (size.width > 0 && size.height > 0) {
@@ -143,7 +156,7 @@ fun EventScreen(
                     .then(backgroundModifier)
                     .padding(bottom = 0.dp)
             ) {
-                Spacer(modifier = Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 // Top App Bar with improved spacing
                 Box(
@@ -376,6 +389,7 @@ fun EventScreen(
         }
 
 
+    }
     }
 }
 

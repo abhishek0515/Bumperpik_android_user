@@ -47,6 +47,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -79,6 +80,7 @@ import com.bumperpick.bumperickUser.Screens.Home.UiState
 import com.bumperpick.bumperickUser.ui.theme.BtnColor
 import com.bumperpick.bumperickUser.ui.theme.grey
 import com.bumperpick.bumperickUser.ui.theme.satoshi_regular
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import org.koin.androidx.compose.koinViewModel
 import java.io.File
 
@@ -181,7 +183,14 @@ fun EditProfile(
             else -> null
         }
     }
-
+    val statusBarColor = Color(0xFF5A0E26) // Your desired color
+    val systemUiController = rememberSystemUiController()    // Change status bar color
+    SideEffect {
+        systemUiController.setStatusBarColor(
+            color = statusBarColor,
+            darkIcons = false // true for dark icons on light background
+        )
+    }
     fun validateForm(): Boolean {
         nameError = validateName(name)
         emailError = validateEmail(email)
@@ -191,18 +200,20 @@ fun EditProfile(
     Scaffold(
         containerColor = (grey)
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize()
+            .padding(paddingValues)) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
+
             ) {
                 // Enhanced Header
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     color = Color.White,
                     shadowElevation = 2.dp
-                ) {
+                )
+                {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()

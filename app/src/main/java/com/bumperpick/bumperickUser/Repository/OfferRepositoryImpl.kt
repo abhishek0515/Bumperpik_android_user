@@ -17,10 +17,13 @@ import com.bumperpick.bumperickUser.API.New_model.deletemodel
 import com.bumperpick.bumperickUser.API.New_model.sub_categories
 import com.bumperpick.bumperickUser.API.New_model.trendingSearchModel
 import com.bumperpick.bumperickUser.Screens.Home.OfferFilter
+import com.bumperpick.bumperickUser.data.LocationData
+import com.bumperpick.bumperpick_Vendor.API.FinalModel.Notification_model
 import com.bumperpick.bumperpickvendor.API.Model.success_model
 import com.bumperpick.bumperpickvendor.API.Provider.ApiResult
 import com.bumperpick.bumperpickvendor.API.Provider.ApiService
 import com.bumperpick.bumperpickvendor.API.Provider.safeApiCall
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.firstOrNull
 class OfferRepositoryImpl(
     private val apiService: ApiService,
@@ -40,7 +43,7 @@ class OfferRepositoryImpl(
         // Add category_id if non-empty (for single category_id field)
 
         if (filter.categoriesId.isNotEmpty()) {
-
+                Log.d("category_id",filter.categoriesId.toString())
             filter.categoriesId
                 .filter { !it.equals("all") }
                 .forEachIndexed { index, id ->
@@ -51,7 +54,10 @@ class OfferRepositoryImpl(
             params["sort_by"]=filter.sortBy
         }
         if(filter.distanceFilter.isNotEmpty()){
-            params["distance_filter"] =filter.distanceFilter
+            Log.d("distance_filter",filter.distanceFilter)
+            if(!filter.distanceFilter.equals("all")) {
+                params["distance_filter"] = filter.distanceFilter
+            }
         }
         if(filter.search.isNotEmpty()){
             params["search"] =filter.search
@@ -303,5 +309,31 @@ class OfferRepositoryImpl(
 
             is ApiResult.Error -> Result.Error(response.message)
         }
+    }
+
+    override suspend fun notification():Result<Notification_model> {
+        val token = dataStoreManager.getToken.firstOrNull() ?: return Result.Error("Token not found")
+
+        val response=safeApiCall(
+            context = context,
+            api = {apiService.notification(token)},
+            refreshTokenApi = { apiService.refresh_token(it) },
+            dataStoreManager = dataStoreManager
+        )
+        return when (response) {
+            is ApiResult.Success -> {
+                if (response.data.code == 200) Result.Success(response.data)
+                else Result.Error(response.data.code.toString())
+            }
+
+            is ApiResult.Error -> Result.Error(response.message)
+        }
+    }
+
+    override suspend fun get_locationData(): Result<LocationData> {
+        val locationData = dataStoreManager.getLocation.firstOrNull()
+        Log.d("LocationData",locationData.toString())
+        return if (locationData != null) Result.Success(locationData)
+        else Result.Error("Location data not found")
     }
 }

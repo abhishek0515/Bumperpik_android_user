@@ -7,9 +7,14 @@ import com.bumperpick.bumperickUser.API.New_model.profile_model
 import com.bumperpick.bumperpickvendor.API.Provider.ApiResult
 import com.bumperpick.bumperpickvendor.API.Provider.ApiService
 import com.bumperpick.bumperpickvendor.API.Provider.safeApiCall
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.gson.Gson
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -107,6 +112,37 @@ class AuthRepositoryImpl(
                             verifyOtpResponse.data.meta.token,
                             verifyOtpResponse.data.data.customer_id.toString()
                         )
+                        FirebaseMessaging.getInstance().token.addOnCompleteListener {
+                                task ->
+                            if(task.isSuccessful){
+                                CoroutineScope(Dispatchers.IO).launch {
+
+
+                                    val send_fcm_token = safeApiCall(
+                                        context = context,
+                                        api = {
+                                            apiService.send_token(
+                                                token = verifyOtpResponse.data.meta.token,
+                                                vendorId = verifyOtpResponse.data.data.customer_id.toString(),
+                                                device_token = task.result
+                                            )
+                                        },
+                                        refreshTokenApi = { token -> apiService.refresh_token(token) },
+                                        dataStoreManager = dataStoreManager
+                                    )
+
+                                    when (send_fcm_token) {
+                                        is ApiResult.Error -> {
+                                            Log.d("Error_Fcm_token", send_fcm_token.message)
+                                        }
+
+                                        is ApiResult.Success -> {
+                                            Log.d("Success_Fcm_token", send_fcm_token.data.message)
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         Result.Success(true)
                     } else Result.Error(verifyOtpResponse.data.message)
                 }

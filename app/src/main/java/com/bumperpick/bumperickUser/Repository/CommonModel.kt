@@ -11,10 +11,3 @@ sealed class GoogleSignInState {
     data class Error(val message: String) : GoogleSignInState()
 }
 
-data class GoogleUserData(
-    val userId: String,
-    val displayName: String?,
-    val email: String?,
-    val profilePictureUrl: String?,
-    val idToken: String
-)

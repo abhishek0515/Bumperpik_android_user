@@ -1,5 +1,7 @@
 package com.bumperpick.bumperickUser.API.Model
 
+import com.bumperpick.bumperickUser.API.New_model.Media
+
 data class DataXXXXXX(
     val address: String,
     val approval: String,

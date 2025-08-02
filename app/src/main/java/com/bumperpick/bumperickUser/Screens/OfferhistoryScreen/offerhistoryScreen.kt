@@ -126,12 +126,24 @@ fun offerhistoryScreen(  onBackClick: () -> Unit,
                     }
                     when(offerUiState){
                         UiState.Empty -> {
-                            Box(modifier = Modifier.fillMaxSize()) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(24.dp)
+                            ) {
+                                Image(
+                                    painter = painterResource(R.drawable.artwork),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(100.dp)
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
                                 Text(
-                                    text = "No offers available",
+                                    "No offers found",
+                                    modifier = Modifier.padding(horizontal = 0.dp).fillMaxWidth(),
                                     textAlign = TextAlign.Center,
-                                    modifier = Modifier.align(Alignment.Center),
-                                )}
+                                    color = BtnColor
+                                )
+                            }
+
                         }
                         is UiState.Error -> {
 
@@ -194,6 +206,28 @@ fun offerhistoryScreen(  onBackClick: () -> Unit,
                                     }
                                 }
                                 else {
+                                    if(filteredList.isEmpty()) {
+                                        item {
+                                            Column(
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                modifier = Modifier.padding(24.dp)
+                                            ) {
+                                                Image(
+                                                    painter = painterResource(R.drawable.artwork),
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(100.dp)
+                                                )
+                                                Spacer(modifier = Modifier.width(10.dp))
+                                                Text(
+                                                    "No offers found",
+                                                    modifier = Modifier.padding(horizontal = 0.dp).fillMaxWidth(),
+                                                    textAlign = TextAlign.Center,
+                                                    color = BtnColor
+                                                )
+                                            }
+                                        }
+                                    }
+                                    else{
                                     items(filteredList) {
 
                                         val dataxx=DataXX(
@@ -220,6 +254,7 @@ fun offerhistoryScreen(  onBackClick: () -> Unit,
 
 
                                         )
+                                    }
                                     }
                                 }
                             }

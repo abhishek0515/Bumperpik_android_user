@@ -165,6 +165,7 @@ fun Login(
                     fontWeight = FontWeight.SemiBold,
                     lineHeight = 24.sp // ← Increased line spacing
                 ),
+                color = Color.Black,
                 fontFamily = satoshi_regular,
                 modifier = Modifier
                     .align(Alignment.Start)
@@ -202,6 +203,7 @@ fun Login(
                 Text(
                     text = "I accept the Terms and conditions & Privacy policy",
                     fontSize = 14.sp,
+                    color = Color.Black,
                     modifier = Modifier.padding(start = 4.dp)
                 )
             }

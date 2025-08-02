@@ -6,6 +6,7 @@ import com.bumperpick.bumperickUser.API.New_model.Category
 import com.bumperpick.bumperickUser.API.New_model.sub_categories
 import com.bumperpick.bumperickUser.Repository.OfferRepository
 import com.bumperpick.bumperickUser.Repository.Result
+import com.bumperpick.bumperickUser.data.LocationData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -55,7 +56,18 @@ class CategoryViewModel(
             }
         }
     }
+    private val _getLocation=MutableStateFlow<UiState<LocationData>>(UiState.Empty)
+    val getLocation:StateFlow<UiState<LocationData>> =_getLocation
 
+    fun fetchLocation(){
+        viewModelScope.launch {
+            _getLocation.value=when(val result=offerRepository.get_locationData()){
+                is Result.Error -> UiState.Error(result.message)
+                Result.Loading -> UiState.Loading
+                is Result.Success-> UiState.Success(result.data)
+            }
+        }
+    }
     fun fetchSubCategories(categoryId: Int) {
         // Check cache first
 

@@ -80,6 +80,7 @@ sealed class Screen(val route: String) {
     object ticketdetail: Screen("ticket_detail/{$TICKET_ID}"){
         fun withid(id: String): String="ticket_detail/$id"
     }
+    object Notification: Screen("notification")
 
 
 }

@@ -73,6 +73,8 @@ import com.bumperpick.bumperickUser.API.New_model.Category
 import com.bumperpick.bumperickUser.API.New_model.sub_categories
 import com.bumperpick.bumperickUser.R
 import com.bumperpick.bumperickUser.Screens.Component.LocationCard
+import com.bumperpick.bumperickUser.Screens.Home.UiState
+import com.bumperpick.bumperickUser.data.LocationData
 import com.bumperpick.bumperickUser.ui.theme.BtnColor
 import org.koin.androidx.compose.koinViewModel// ImprovedOfferScreen.kt
 @OptIn(ExperimentalMaterial3Api::class)
@@ -85,11 +87,28 @@ fun OfferScreen(homeclick:(HomeClick)->Unit,open_subID:(sub_cat_id:String,sub_ca
     var sub_cat_searchQuery by remember { mutableStateOf("") }
     val categoriesState = viewModel.categoriesUiState.collectAsState().value
     val subCategoriesState = viewModel.subCategoriesUiState.collectAsState().value
+    var LocationTitle by remember { mutableStateOf("") }
+    var LocationSubTitle by remember { mutableStateOf("") }
+    val locationDetails by viewModel.getLocation.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.getCategories()
+        viewModel.fetchLocation()
     }
+    LaunchedEffect(locationDetails) {
+        when(locationDetails) {
+            UiState.Empty -> {}
+            is UiState.Error -> {
 
+            }
+
+            UiState.Loading -> {}
+            is UiState.Success -> {
+                LocationTitle = (locationDetails as UiState.Success<LocationData>).data.area
+                LocationSubTitle = (locationDetails as UiState.Success<LocationData>).data.city
+            }
+        }
+    }
     LaunchedEffect(selectedCategoryId) {
         selectedCategoryId?.let { id ->
             viewModel.fetchSubCategories(id)
@@ -212,11 +231,19 @@ fun OfferScreen(homeclick:(HomeClick)->Unit,open_subID:(sub_cat_id:String,sub_ca
         }
 
         if (!showSubCategories) {
-            LocationCard(onCartClick = {
+            LocationCard(
+               locationDetails = locationDetails,
+                onCartClick = {
                 homeclick(HomeClick.CartClick)
             },
                 onFavClick = {
                     homeclick(HomeClick.FavClick)
+                },
+                onLocationClick = {
+                    homeclick(HomeClick.LocationClick)
+                },
+                onNotificationClick = {
+                    homeclick(HomeClick.NotifyClick)
                 },
                 content = {
                     OutlinedTextField(
@@ -254,7 +281,7 @@ fun OfferScreen(homeclick:(HomeClick)->Unit,open_subID:(sub_cat_id:String,sub_ca
                             focusedContainerColor = Color.White
                         )
                     )
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(0.dp))
                 }
             )
         }

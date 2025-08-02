@@ -15,6 +15,7 @@ import com.bumperpick.bumperickUser.API.New_model.cartDetails
 import com.bumperpick.bumperickUser.API.New_model.trendingSearchModel
 import com.bumperpick.bumperickUser.Repository.OfferRepository
 import com.bumperpick.bumperickUser.Repository.Result
+import com.bumperpick.bumperickUser.data.LocationData
 import com.bumperpick.bumperpickvendor.API.Model.success_model
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -73,6 +74,19 @@ class HomePageViewmodel(val offerRepository: OfferRepository):ViewModel() {
 
     private val _currentOfferFilter = MutableStateFlow(OfferFilter())
     val currentOfferFilter: StateFlow<OfferFilter> = _currentOfferFilter
+
+    private val _getLocation=MutableStateFlow<UiState<LocationData>>(UiState.Empty)
+    val getLocation:StateFlow<UiState<LocationData>> =_getLocation
+
+    fun fetchLocation(){
+        viewModelScope.launch {
+         _getLocation.value=when(val result=offerRepository.get_locationData()){
+             is Result.Error -> UiState.Error(result.message)
+             Result.Loading -> UiState.Loading
+             is Result.Success-> UiState.Success(result.data)
+         }
+        }
+    }
     fun getTrendingSearches(){
         viewModelScope.launch {
             val result=offerRepository.trendingSearch()
@@ -158,7 +172,13 @@ class HomePageViewmodel(val offerRepository: OfferRepository):ViewModel() {
             }
         }
     }
+    fun clearFilter(){
 
+        _currentOfferFilter.value = OfferFilter()
+        getOffers(
+            removeads = false
+        ) // Reload offers with the updated filter
+    }
     fun updateFilterAndLoadOffers(
         subcatId: String? = null,
         categoriesId: List<String>? = null,

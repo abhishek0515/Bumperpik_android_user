@@ -37,7 +37,7 @@ suspend fun <T> safeApiCall(
                 ?: ApiResult.Error("Empty body", response.code())
         } else {
             // Check for unauthenticated
-            if (response.code() == 401 || response.message().contains("Unauthenticated", true)) {
+           /* if (response.code() == 401 || response.message().contains("Unauthenticated", true)) {
                 // Get current token
                 val currentToken = dataStoreManager.getToken.firstOrNull()
                 if (currentToken != null) {
@@ -66,13 +66,13 @@ suspend fun <T> safeApiCall(
                     return ApiResult.Error("No token found for refresh")
                 }
             } else {
-                val errorBody = response.errorBody()?.string()
+           */     val errorBody = response.errorBody()?.string()
                 val gson = Gson()
                 val errorResponse = gson.fromJson(errorBody, success_model::class.java)
 
                 Log.d("Error",errorResponse.message?:"")
                 ApiResult.Error("Error: ${errorResponse.message}", response.code())
-            }
+          //  }
         }
     } catch (e: Exception) {
         ApiResult.Error("Exception: ${e.localizedMessage ?: "Unknown error"}")

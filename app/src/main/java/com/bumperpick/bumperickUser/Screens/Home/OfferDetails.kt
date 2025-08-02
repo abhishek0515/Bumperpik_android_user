@@ -401,7 +401,7 @@ fun offerDetail(offer: Offer, onBackClick: () -> Unit, is_offer_or_history: Bool
                                 Spacer(modifier = Modifier.height(8.dp))
 
                                 Text(
-                                    text = offer.description,
+                                    text = offer.address,
                                     fontSize = 14.sp,
                                     color = Color.Gray
                                 )
@@ -1012,8 +1012,10 @@ fun CouponCard(offer: Offer) {
                                     color = Color.Black
                                 )
                                 Spacer(modifier = Modifier.height(0.dp))
+                                val test=if(offer.is_unlimited==1)"Until stock last" else
+                                    "${offer.quantity} left"
                                 Text(
-                                    text = "${offer.quantity} left",
+                                    text = test,
                                     fontSize = 15.sp,
                                     color = Color.Black,
                                     modifier = Modifier.padding(top = 2.dp)
@@ -1031,7 +1033,7 @@ fun CouponCard(offer: Offer) {
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 Text(
-                    text = offer.heading?:"",
+                    text = offer.description?:"",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.Black
