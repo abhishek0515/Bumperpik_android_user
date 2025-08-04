@@ -73,8 +73,9 @@ import com.bumperpick.bumperickUser.API.New_model.Category
 import com.bumperpick.bumperickUser.API.New_model.sub_categories
 import com.bumperpick.bumperickUser.R
 import com.bumperpick.bumperickUser.Screens.Component.LocationCard
+import com.bumperpick.bumperickUser.Screens.Home.Map.LocationData
 import com.bumperpick.bumperickUser.Screens.Home.UiState
-import com.bumperpick.bumperickUser.data.LocationData
+
 import com.bumperpick.bumperickUser.ui.theme.BtnColor
 import org.koin.androidx.compose.koinViewModel// ImprovedOfferScreen.kt
 @OptIn(ExperimentalMaterial3Api::class)

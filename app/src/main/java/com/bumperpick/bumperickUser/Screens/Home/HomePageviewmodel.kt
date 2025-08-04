@@ -9,13 +9,15 @@ import androidx.lifecycle.viewModelScope
 import com.bumperpick.bumperickUser.API.Model.DataXXXXXX
 import com.bumperpick.bumperickUser.API.New_model.Category
 import com.bumperpick.bumperickUser.API.New_model.CustomerOfferDetail
+import com.bumperpick.bumperickUser.API.New_model.DataXXXXXXXXXXXXX
 import com.bumperpick.bumperickUser.API.New_model.Offer
 import com.bumperpick.bumperickUser.API.New_model.OfferHistoryModel
 import com.bumperpick.bumperickUser.API.New_model.cartDetails
 import com.bumperpick.bumperickUser.API.New_model.trendingSearchModel
 import com.bumperpick.bumperickUser.Repository.OfferRepository
 import com.bumperpick.bumperickUser.Repository.Result
-import com.bumperpick.bumperickUser.data.LocationData
+import com.bumperpick.bumperickUser.Screens.Home.Map.LocationData
+
 import com.bumperpick.bumperpickvendor.API.Model.success_model
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -78,6 +80,18 @@ class HomePageViewmodel(val offerRepository: OfferRepository):ViewModel() {
     private val _getLocation=MutableStateFlow<UiState<LocationData>>(UiState.Empty)
     val getLocation:StateFlow<UiState<LocationData>> =_getLocation
 
+    private val _banner= MutableStateFlow<UiState<List<DataXXXXXXXXXXXXX>>>(UiState.Empty)
+    val banner: StateFlow<UiState<List<DataXXXXXXXXXXXXX>>> = _banner
+
+    fun fetchBanner(){
+        viewModelScope.launch {
+            _banner.value=when(val result=offerRepository.banner()){
+                is Result.Error -> UiState.Error(result.message)
+                Result.Loading -> UiState.Loading
+                is Result.Success -> UiState.Success(result.data.data)
+        }
+    }
+        }
     fun fetchLocation(){
         viewModelScope.launch {
          _getLocation.value=when(val result=offerRepository.get_locationData()){

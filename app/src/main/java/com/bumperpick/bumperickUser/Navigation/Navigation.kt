@@ -25,6 +25,7 @@ import com.bumperpick.bumperickUser.Screens.Home.Cart
 
 import com.bumperpick.bumperickUser.Screens.Home.HomeClick
 import com.bumperpick.bumperickUser.Screens.Home.Homepage
+import com.bumperpick.bumperickUser.Screens.Home.Map.ChooseLocation
 import com.bumperpick.bumperickUser.Screens.Home.OfferDetails
 
 import com.bumperpick.bumperickUser.Screens.Home.OfferSearchScreen
@@ -38,7 +39,7 @@ import com.bumperpick.bumperickUser.Screens.StartScreen.StartScreen
 import com.bumperpick.bumperickUser.Screens.Support.SupportTicketsScreen
 import com.bumperpick.bumperickUser.Screens.Support.TicketDetailsScreen
 import com.bumperpick.bumperickUser.Screens.favourite.FavouriteScreen
-import com.bumperpick.bumperickUser.data.ChooseLocation
+
 import com.bumperpick.bumperpick_Vendor.Screens.NotificationScreen.NotificationScreen
 
 
@@ -238,6 +239,7 @@ fun AppNavigation() {
 
         composable(route=Screen.Location.route){
             ChooseLocation(onBackClick = {
+
                 navController.popBackStack()
             })
         }

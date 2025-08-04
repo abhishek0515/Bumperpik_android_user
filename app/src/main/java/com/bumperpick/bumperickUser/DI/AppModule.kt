@@ -24,7 +24,7 @@ import com.bumperpick.bumperickUser.Screens.NotificationScreen.NotificationViewm
 import com.bumperpick.bumperickUser.Screens.OTP.OtpViewModel
 import com.bumperpick.bumperickUser.Screens.Splash.SplashViewmodel
 import com.bumperpick.bumperickUser.Screens.Support.SupportViewModel
-import com.bumperpick.bumperickUser.data.LocationViewModel
+
 
 import com.bumperpick.bumperpickvendor.API.Provider.ApiService
 import org.koin.dsl.module
@@ -64,7 +64,7 @@ val appModule = module {
     viewModel { SupportViewModel(get()) }
     viewModel { homeScreenViewmodel() }
     viewModel { NotificationViewmodel(get()) }
-    viewModel { LocationViewModel(get ()) }
+    viewModel { com.bumperpick.bumperickUser.Screens.Home.Map.LocationViewModel(get (),get(),get()) }
 
 
 

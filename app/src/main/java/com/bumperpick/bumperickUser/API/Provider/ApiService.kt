@@ -9,6 +9,7 @@ import com.bumperpick.bumperickUser.API.New_model.EventRegisterModel
 import com.bumperpick.bumperickUser.API.New_model.Faqmodel
 import com.bumperpick.bumperickUser.API.New_model.LoginModel
 import com.bumperpick.bumperickUser.API.New_model.OfferHistoryModel
+import com.bumperpick.bumperickUser.API.New_model.banner_model
 import com.bumperpick.bumperickUser.API.New_model.cartDetails
 import com.bumperpick.bumperickUser.API.New_model.deletemodel
 import com.bumperpick.bumperickUser.API.New_model.profile_model
@@ -166,6 +167,17 @@ interface ApiService {
 
     @GET("api/customer/notifications")
     suspend fun notification(@Query("token")token: String): Response<Notification_model>
+
+    @GET("api/banners")
+    suspend fun bannerAPi(): Response<banner_model>
+
+    @POST("api/customer/location/update")
+    @FormUrlEncoded
+    suspend fun location_update(
+        @Field("token")token: String,
+        @Field("latitude")latitude: String,
+        @Field("longitude")longitude: String,
+    ): Response<success_model>
     @POST("api/customer/tickets/{id}/reply")
     @FormUrlEncoded
     suspend fun ticket_reply(@Path("id")id: String,@FieldMap map: Map<String, String>): Response<success_model>

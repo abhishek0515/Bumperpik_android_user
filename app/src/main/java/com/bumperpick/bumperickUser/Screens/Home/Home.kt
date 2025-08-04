@@ -68,6 +68,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.bumperpick.bumperickUser.API.New_model.Category
+import com.bumperpick.bumperickUser.API.New_model.DataXXXXXXXXXXXXX
 import com.bumperpick.bumperickUser.API.New_model.Offer
 import com.bumperpick.bumperickUser.Navigation.show_toast
 import com.bumperpick.bumperickUser.R
@@ -77,10 +78,6 @@ import com.bumperpick.bumperickUser.Screens.Component.ChipRowWithSelectiveIcons
 
 import com.bumperpick.bumperickUser.Screens.Component.HomeOfferView
 import com.bumperpick.bumperickUser.Screens.Component.LocationCard
-import com.bumperpick.bumperickUser.Screens.Component.MarketingOption
-
-import com.bumperpick.bumperickUser.Screens.Component.OfferValidation
-import com.bumperpick.bumperickUser.data.LocationData
 
 import com.bumperpick.bumperickUser.ui.theme.BtnColor
 import com.bumperpick.bumperickUser.ui.theme.satoshi
@@ -161,6 +158,7 @@ fun Home(
     val locationDetails by viewModel.getLocation.collectAsState()
     val context = LocalContext.current
     val fav_toogle by viewModel.fav_toogle_uiState.collectAsState()
+    val fetch_banner by viewModel.banner.collectAsState()
     var hide_cat by remember { mutableStateOf(false) }
     // Define imageUrls here or pass them from a higher level if dynamic
 
@@ -176,6 +174,7 @@ fun Home(
         viewModel.getCategory()
         viewModel.clearFilter()
         viewModel.fetchLocation()
+        viewModel.fetchBanner()
     }
 
     LaunchedEffect(fav_toogle) {
@@ -261,7 +260,20 @@ fun Home(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 border = BorderStroke(0.1.dp, Color.Black)
             ) {
-                AutoImageSlider(imageurls)
+                when(fetch_banner){
+                    UiState.Empty ->{}
+                    is UiState.Error -> {
+
+                    }
+                    UiState.Loading -> {
+                            CircularProgressIndicator(color = BtnColor)
+                    }
+                    is UiState.Success<*> -> {
+                        val banners=(fetch_banner as UiState.Success<List<DataXXXXXXXXXXXXX>>).data.map { it.banner }
+                        AutoImageSlider(banners)
+                    }
+                }
+
             }
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -568,8 +580,3 @@ fun DisplayErrorToast(uiState: UiState<*>, context: android.content.Context) {
         }
     }
 }
-val imageurls:ArrayList<String> = arrayListOf("https://bummper-tick.s3.amazonaws.com/offers/brand_logos/2wfejGHVZjSVcN3yBq7KcHC0lencBA0BOCdiiJQA.jpg",
-    "https://bummper-tick.s3.amazonaws.com/offers/media/BAblAolhcnPnHl1pa9cYPur8vLHiUWM7AFQ1imOK.jpg",
-    "https://bummper-tick.s3.amazonaws.com/offers/brand_logos/LrxWjQUnzyjceN5N2GFrauatrrTneh3dHLSZvF5q.png",
-    "https://bummper-tick.s3.amazonaws.com/offers/brand_logos/Y4oZxIOW5exbkJGGW7dKd96FRmdlxhDGjLvvHAY2.png")
-

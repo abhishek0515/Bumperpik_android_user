@@ -9,12 +9,14 @@ import com.bumperpick.bumperickUser.API.New_model.DataXX
 import com.bumperpick.bumperickUser.API.New_model.Faqmodel
 import com.bumperpick.bumperickUser.API.New_model.Offer
 import com.bumperpick.bumperickUser.API.New_model.OfferHistoryModel
+import com.bumperpick.bumperickUser.API.New_model.banner_model
 import com.bumperpick.bumperickUser.API.New_model.cartDetails
 import com.bumperpick.bumperickUser.API.New_model.deletemodel
 import com.bumperpick.bumperickUser.API.New_model.sub_categories
 import com.bumperpick.bumperickUser.API.New_model.trendingSearchModel
+import com.bumperpick.bumperickUser.Screens.Home.Map.LocationData
 import com.bumperpick.bumperickUser.Screens.Home.OfferFilter
-import com.bumperpick.bumperickUser.data.LocationData
+
 import com.bumperpick.bumperpick_Vendor.API.FinalModel.Notification_model
 import com.bumperpick.bumperpickvendor.API.Model.success_model
 
@@ -39,5 +41,7 @@ interface OfferRepository {
     suspend fun notification():Result<Notification_model>
 
     suspend fun get_locationData():Result<LocationData>
+
+    suspend fun banner():Result<banner_model>
 
 }

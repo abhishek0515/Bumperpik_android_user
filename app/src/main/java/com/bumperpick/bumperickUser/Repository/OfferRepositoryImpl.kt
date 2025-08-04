@@ -12,12 +12,15 @@ import com.bumperpick.bumperickUser.API.New_model.DataXX
 import com.bumperpick.bumperickUser.API.New_model.Faqmodel
 import com.bumperpick.bumperickUser.API.New_model.Offer
 import com.bumperpick.bumperickUser.API.New_model.OfferHistoryModel
+import com.bumperpick.bumperickUser.API.New_model.banner_model
 import com.bumperpick.bumperickUser.API.New_model.cartDetails
 import com.bumperpick.bumperickUser.API.New_model.deletemodel
 import com.bumperpick.bumperickUser.API.New_model.sub_categories
 import com.bumperpick.bumperickUser.API.New_model.trendingSearchModel
+import com.bumperpick.bumperickUser.Repository.Result.*
+import com.bumperpick.bumperickUser.Screens.Home.Map.LocationData
 import com.bumperpick.bumperickUser.Screens.Home.OfferFilter
-import com.bumperpick.bumperickUser.data.LocationData
+
 import com.bumperpick.bumperpick_Vendor.API.FinalModel.Notification_model
 import com.bumperpick.bumperpickvendor.API.Model.success_model
 import com.bumperpick.bumperpickvendor.API.Provider.ApiResult
@@ -336,4 +339,21 @@ class OfferRepositoryImpl(
         return if (locationData != null) Result.Success(locationData)
         else Result.Error("Location data not found")
     }
+
+    override suspend fun banner(): Result<banner_model> {
+        val response = safeApiCall(
+            context = context,
+            api = { apiService.bannerAPi() },
+            refreshTokenApi = { apiService.refresh_token(it) },
+            dataStoreManager = dataStoreManager
+        )
+        return when (response) {
+            is ApiResult.Success -> {
+                if (response.data.code == 200) Success(response.data)
+                else Error(response.data.code.toString())
+            }
+
+            is ApiResult.Error -> Result.Error(response.message)
+        }
 }
+    }

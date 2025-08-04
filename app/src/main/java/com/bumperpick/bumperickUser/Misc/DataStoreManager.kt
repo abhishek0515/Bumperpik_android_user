@@ -9,7 +9,8 @@ import androidx.datastore.core.DataStore
 
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.bumperpick.bumperickUser.data.LocationData
+import com.bumperpick.bumperickUser.Screens.Home.Map.LocationData
+
 
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow
@@ -35,6 +36,8 @@ class DataStoreManager(private val context: Context) {
     }
 
     suspend fun saveLocation(location: LocationData) {
+
+
         dataStore.edit { prefs ->
             prefs[LOCATION] = Gson().toJson(location)
         }

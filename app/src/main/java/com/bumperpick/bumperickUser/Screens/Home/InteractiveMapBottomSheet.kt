@@ -30,7 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import com.bumperpick.bumperickUser.data.LocationData
+import com.bumperpick.bumperickUser.Screens.Home.Map.LocationData
 import com.bumperpick.bumperickUser.ui.theme.BtnColor
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory

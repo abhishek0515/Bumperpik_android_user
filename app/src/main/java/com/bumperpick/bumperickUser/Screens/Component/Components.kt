@@ -134,9 +134,9 @@ import com.bumperpick.bumperickUser.API.New_model.Media
 import com.bumperpick.bumperickUser.API.New_model.Offer
 import com.bumperpick.bumperickUser.Misc.LocationHelper
 import com.bumperpick.bumperickUser.Screens.Home.HomePageViewmodel
+import com.bumperpick.bumperickUser.Screens.Home.Map.LocationData
 import com.bumperpick.bumperickUser.Screens.Home.UiState
-import com.bumperpick.bumperickUser.Screens.Home.imageurls
-import com.bumperpick.bumperickUser.data.LocationData
+
 import com.bumperpick.bumperickUser.ui.theme.grey
 import com.bumperpick.bumperpickvendor.API.Model.success_model
 import com.google.zxing.BarcodeFormat

@@ -38,12 +38,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val firebaseInstance= FirebaseMessaging.getInstance()
 
-           firebaseInstance .subscribeToTopic("user")
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d("FCM", "Subscribed to 'user' topic")
+        firebaseInstance .subscribeToTopic("user")
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Log.d("FCM", "Subscribed to 'user' topic")
+                    }
                 }
-            }
 
         checkNotificationPermission()
         enableEdgeToEdge()

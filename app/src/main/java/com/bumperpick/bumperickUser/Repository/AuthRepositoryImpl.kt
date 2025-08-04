@@ -4,6 +4,7 @@ import DataStoreManager
 import android.content.Context
 import android.util.Log
 import com.bumperpick.bumperickUser.API.New_model.profile_model
+import com.bumperpick.bumperpickvendor.API.Model.success_model
 import com.bumperpick.bumperpickvendor.API.Provider.ApiResult
 import com.bumperpick.bumperpickvendor.API.Provider.ApiService
 import com.bumperpick.bumperpickvendor.API.Provider.safeApiCall
@@ -177,6 +178,38 @@ class AuthRepositoryImpl(
             }
         } catch (e: Exception) {
             Result.Error("Get profile failed", e)
+        }
+    }
+
+    override suspend fun sendLocation(lat: Double, long: Double): Result<success_model> {
+        return try {
+            val sendLocatrion=safeApiCall(
+                context=context,
+                api = {
+                    val token = dataStoreManager.getToken.firstOrNull()?:""
+                    apiService.location_update(
+                        token = token,
+                        latitude = lat.toString(),
+                        longitude = long.toString()
+                    )
+
+                },
+                refreshTokenApi = { token -> apiService.refresh_token(token) },
+                dataStoreManager = dataStoreManager
+            )
+            when (sendLocatrion) {
+                is ApiResult.Success -> {
+                    if (sendLocatrion.data.code == 200) {
+                        Result.Success(sendLocatrion.data)
+                    } else Result.Error(sendLocatrion.data.message)
+                }
+
+                is ApiResult.Error -> Result.Error(sendLocatrion.message)
+            }
+
+        }
+        catch (e: Exception) {
+            Result.Error("sendLocation", e)
         }
     }
 

@@ -3,6 +3,8 @@ package com.bumperpick.bumperpick_Vendor.Screens.NotificationScreen
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +23,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -45,11 +48,14 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bumperpick.bumperickUser.R
+import com.bumperpick.bumperickUser.Screens.Faq.FaqCard
 
 import com.bumperpick.bumperickUser.Screens.Home.UiState
 import com.bumperpick.bumperickUser.Screens.NotificationScreen.NotificationViewmodel
@@ -214,13 +220,14 @@ fun NotificationListScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                contentPadding = PaddingValues(horizontal = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
                 items(
                     items = notifications,
 
                 ) { notificationData ->
+                  //  FaqCard(question = notificationData.notification.title, answer = notificationData.notification.body)
                     NotificationCard(
                         notificationData = notificationData,
                         modifier = Modifier.animateContentSize(
@@ -251,8 +258,9 @@ fun NotificationCard(
         onClick = { isExpanded = !isExpanded },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = BtnColor.copy(alpha = 0.05f)
+            containerColor = Color.White
         ),
+        border = BorderStroke(0.5.dp, Color.Gray.copy(alpha = 0.5f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp) // Flat design
     ) {
         Box(
@@ -261,57 +269,72 @@ fun NotificationCard(
                 .padding(16.dp)
         ) {
             // Top right icon
-            Icon(
-                imageVector = Icons.Outlined.Notifications,
-                contentDescription = "Notification Icon",
-                tint = BtnColor.copy(alpha = 0.7f),
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .size(20.dp)
-            )
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                // Title
-                Text(
-                    text = notificationData.notification.title,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.SemiBold
-                    ),
-                    color = BtnColor,
-                    maxLines = if (isExpanded) Int.MAX_VALUE else 2,
-                    overflow = TextOverflow.Ellipsis
+            Row {
+                Image(
+                    painter =painterResource(R.drawable.percentage_red),
+                    contentDescription = "Notification Icon",
+                    modifier = Modifier
+                        .align(Alignment.Top)
+                        .size(36.dp)
                 )
+                Spacer(modifier = Modifier.width(8.dp))
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Body
-                Text(
-                    text = notificationData.notification.body,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        lineHeight = 20.sp
-                    ),
-                    color = Color.Black.copy(alpha = 0.85f),
-                    maxLines = if (isExpanded) Int.MAX_VALUE else 3,
-                    overflow = TextOverflow.Ellipsis
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .align(Alignment.Top)
                 )
-
-                // Tap to expand hint
-                if (!isExpanded &&
-                    (notificationData.notification.title.length > 50 ||
-                            notificationData.notification.body.length > 100)
-                ) {
-                    Spacer(modifier = Modifier.height(10.dp))
+                {
+                    // Title
                     Text(
-                        text = "Tap to read more",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = BtnColor.copy(alpha = 0.6f),
-                        modifier = Modifier.align(Alignment.End)
+                        text = notificationData.notification.title,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        color = Color.Black,
+                        maxLines = if (isExpanded) Int.MAX_VALUE else 2,
+                        overflow = TextOverflow.Ellipsis
                     )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Body
+                    Text(
+                        text = notificationData.notification.body,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            lineHeight = 20.sp
+                        ),
+                        color = Color.Black.copy(alpha = 0.85f),
+                        maxLines = if (isExpanded) Int.MAX_VALUE else 3,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    // Tap to expand hint
+                    if (!isExpanded &&
+                        (notificationData.notification.title.length > 50 ||
+                                notificationData.notification.body.length > 100)
+                    ) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = "Tap to read more",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = BtnColor.copy(alpha = 0.6f),
+                            modifier = Modifier.align(Alignment.End)
+                        )
+                    }
                 }
+                Icon(
+                    imageVector = Icons.Outlined.KeyboardArrowRight,
+                    contentDescription = "Notification Icon",
+                    tint = Color.Black,
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .size(20.dp)
+                )
+
             }
+
         }
     }
 }
