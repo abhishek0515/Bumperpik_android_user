@@ -166,7 +166,7 @@ class HomePageViewmodel(val offerRepository: OfferRepository):ViewModel() {
             _offer_uiState.value = UiState.Loading
             Log.d("getoffers", "Remove Ads: $removeads")
 
-            val result = offerRepository.getOffers(currentFilter, showads = true)
+            val result = offerRepository.getOffers(currentFilter, showads = removeads)
 
             when (result) {
                 is Result.Error -> {

@@ -56,6 +56,7 @@ class OfferRepositoryImpl(
         if(filter.sortBy.isNotEmpty()){
             params["sort_by"]=filter.sortBy
         }
+
         if(filter.distanceFilter.isNotEmpty()){
             Log.d("distance_filter",filter.distanceFilter)
             if(!filter.distanceFilter.equals("all")) {
