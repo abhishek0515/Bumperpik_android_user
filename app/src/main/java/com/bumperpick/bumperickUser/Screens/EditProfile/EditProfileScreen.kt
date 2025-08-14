@@ -109,6 +109,7 @@ fun EditProfile(
     var mobile by remember { mutableStateOf("") }
     var imageFile by remember { mutableStateOf<File?>(null) }
     var imageurl by remember { mutableStateOf("") }
+    var enabled_mobile by remember { mutableStateOf(false) }
 
     // Validation states
     var nameError by remember { mutableStateOf<String?>(null) }
@@ -157,6 +158,7 @@ fun EditProfile(
                 name = data.name ?: ""
                 email = data.email ?: ""
                 mobile = data.phone_number ?: ""
+                enabled_mobile= mobile.isEmpty()
                 imageurl = data.image_url ?: ""
             }
             is UiState.Error -> {
@@ -376,7 +378,12 @@ fun EditProfile(
 
                                 // Mobile Field (Read-only)
                                 Text(
-                                    text = "Mobile Number",
+                                    text = buildAnnotatedString {
+                                        append("Mobile Number")
+                                        withStyle(style = SpanStyle(color = Color.Red)) {
+                                            append(" *")
+                                        }
+                                    },
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Medium,
                                     fontFamily = satoshi_regular,
@@ -386,9 +393,9 @@ fun EditProfile(
 
                                 EnhancedTextField(
                                     value = mobile,
-                                    onValueChange = {},
+                                    onValueChange = {mobile=it},
                                     placeholder = "Mobile number not provided",
-                                    isEnabled = false,
+                                    isEnabled = enabled_mobile,
                                     leadingIcon = Icons.Outlined.Phone
                                 )
 

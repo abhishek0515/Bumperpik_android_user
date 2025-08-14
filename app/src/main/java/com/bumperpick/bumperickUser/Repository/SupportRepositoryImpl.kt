@@ -2,6 +2,7 @@ package com.bumperpick.bumperickUser.Repository
 
 import DataStoreManager
 import android.content.Context
+import com.bumperpick.bumperickUser.API.New_model.error_model
 import com.bumperpick.bumperickUser.API.New_model.tickerdetails
 import com.bumperpick.bumperickUser.API.New_model.ticket_add_model
 import com.bumperpick.bumperickUser.API.New_model.ticketmessage
@@ -9,6 +10,7 @@ import com.bumperpick.bumperpickvendor.API.Model.success_model
 import com.bumperpick.bumperpickvendor.API.Provider.ApiResult
 import com.bumperpick.bumperpickvendor.API.Provider.ApiService
 import com.bumperpick.bumperpickvendor.API.Provider.safeApiCall
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.firstOrNull
 
 class SupportRepositoryImpl( private val apiService: ApiService,
@@ -28,8 +30,14 @@ class SupportRepositoryImpl( private val apiService: ApiService,
 
         val response= safeApiCall(context = context,
             api = {apiService.ticketAdd(params)},
-            refreshTokenApi = {apiService.refresh_token(it)},
-            dataStoreManager=dataStoreManager)
+            errorBodyParser = {
+                try {
+                    Gson().fromJson(it, error_model::class.java)
+                } catch (e: Exception) {
+                    error_model(message = "Unknown error format: $it")
+                }
+            }
+        )
 
         return when(response){
             is ApiResult.Success -> {
@@ -37,7 +45,7 @@ class SupportRepositoryImpl( private val apiService: ApiService,
                 else Result.Error(response.data.message?:"")
             }
 
-            is ApiResult.Error -> Result.Error(response.message)
+            is ApiResult.Error -> Result.Error(response.error.message)
         }
     }
 
@@ -47,8 +55,13 @@ class SupportRepositoryImpl( private val apiService: ApiService,
         val response = safeApiCall(
             context = context,
             api = { apiService.tickets(token) },
-            refreshTokenApi = { apiService.refresh_token(it) },
-            dataStoreManager = dataStoreManager
+             errorBodyParser = {
+                    try {
+                        Gson().fromJson(it, error_model::class.java)
+                    } catch (e: Exception) {
+                        error_model(message = "Unknown error format: $it")
+                    }
+                }
         )
         return when (response) {
             is ApiResult.Success -> {
@@ -56,7 +69,7 @@ class SupportRepositoryImpl( private val apiService: ApiService,
                 else Result.Error("Tickets not found")
             }
 
-            is ApiResult.Error -> Result.Error(response.message)
+            is ApiResult.Error -> Result.Error(response.error.message)
         }
     }
 
@@ -66,8 +79,13 @@ class SupportRepositoryImpl( private val apiService: ApiService,
         val response = safeApiCall(
             context = context,
             api = { apiService.ticket_detail(id=id,token=token) },
-            refreshTokenApi = { apiService.refresh_token(it) },
-            dataStoreManager = dataStoreManager
+             errorBodyParser = {
+                    try {
+                        Gson().fromJson(it, error_model::class.java)
+                    } catch (e: Exception) {
+                        error_model(message = "Unknown error format: $it")
+                    }
+                }
         )
         return when (response) {
             is ApiResult.Success -> {
@@ -75,7 +93,7 @@ class SupportRepositoryImpl( private val apiService: ApiService,
                 else Result.Error("Tickets not found")
             }
 
-            is ApiResult.Error -> Result.Error(response.message)
+            is ApiResult.Error -> Result.Error(response.error.message)
         }
     }
 
@@ -89,8 +107,13 @@ class SupportRepositoryImpl( private val apiService: ApiService,
         val response = safeApiCall(
             context = context,
             api = { apiService.ticket_reply(id=id, map = params) },
-            refreshTokenApi = { apiService.refresh_token(it) },
-            dataStoreManager = dataStoreManager
+             errorBodyParser = {
+                    try {
+                        Gson().fromJson(it, error_model::class.java)
+                    } catch (e: Exception) {
+                        error_model(message = "Unknown error format: $it")
+                    }
+                }
         )
         return when (response) {
             is ApiResult.Success -> {
@@ -98,7 +121,7 @@ class SupportRepositoryImpl( private val apiService: ApiService,
                 else Result.Error("Tickets not found")
             }
 
-            is ApiResult.Error -> Result.Error(response.message)
+            is ApiResult.Error -> Result.Error(response.error.message)
         }
     }
 

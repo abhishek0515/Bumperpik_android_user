@@ -334,7 +334,11 @@ fun AppNavigation() {
                 },
                 onFavClick = {
                     navController.navigate(Screen.FavouriteScreen.route)
-                })
+                },
+                onNotificationClick={
+                    navController.navigate(Screen.Notification.route)
+                }
+                )
         }
         composable(route=Screen.EventForm.route,
             arguments = listOf(navArgument(Screen.EVENT_NAME){
@@ -373,6 +377,9 @@ fun AppNavigation() {
                 },
                 gotoEventDetail = {
                     navController.navigate(Screen.EventScreenDetail.withid(it))
+                },
+                onNotificationClick={
+                    navController.navigate(Screen.Notification.route)
                 }
             )
         }

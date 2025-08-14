@@ -1,3 +1,4 @@
+import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -265,6 +266,7 @@ fun FilterBottomSheet(
             OutlinedButton(
                 onClick = { filterManager.clearAllFilters()
                     onApplyFilters(emptyList())
+
                           onDismiss()},
                 modifier = Modifier
                     .weight(1f)
@@ -577,6 +579,7 @@ fun FilterSortScreen(
                 SelectedFilterChip(
                     label = filter.label,
                     onRemove = {
+                        Log.d("filter",filter.label)
                         filterManager.removeFilter(filter.id)
                         onFiltersApplied(filterManager.getActiveFilters())
                     }
@@ -612,7 +615,8 @@ fun FilterSortScreen(
                 filterManager = filterManager,
                 onDismiss = { showFilterSheet = false },
                 onApplyFilters = { filters ->
-                    onFiltersApplied(filters)
+                    if(filters.isEmpty()) viewmodel.resetFilters()
+                    else onFiltersApplied(filters)
                     showFilterSheet = false
                 }
             )

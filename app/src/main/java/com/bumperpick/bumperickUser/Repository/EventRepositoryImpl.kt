@@ -6,10 +6,12 @@ import com.bumperpick.bumperickUser.API.New_model.CustomerEventModel
 import com.bumperpick.bumperickUser.API.New_model.DataXXXXXXXX
 import com.bumperpick.bumperickUser.API.New_model.EventModel
 import com.bumperpick.bumperickUser.API.New_model.EventRegisterModel
+import com.bumperpick.bumperickUser.API.New_model.error_model
 import com.bumperpick.bumperpickvendor.API.Provider.ApiResult
 import com.bumperpick.bumperpickvendor.API.Provider.ApiService
 import com.bumperpick.bumperpickvendor.API.Provider.EventRegisterRequest
 import com.bumperpick.bumperpickvendor.API.Provider.safeApiCall
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.firstOrNull
 
 class EventRepositoryImpl(val dataStoreManager: DataStoreManager,val apiService: ApiService,val context: Context):Event_campaign_Repository {
@@ -19,8 +21,13 @@ class EventRepositoryImpl(val dataStoreManager: DataStoreManager,val apiService:
         val response= safeApiCall(
             context=context,
             api = {apiService.customer_campaign(token)},
-            refreshTokenApi = {apiService.refresh_token(it)},
-            dataStoreManager = dataStoreManager
+            errorBodyParser = {
+                    try {
+                        Gson().fromJson(it, error_model::class.java)
+                    } catch (e: Exception) {
+                        error_model(message = "Unknown error format: $it")
+                    }
+                }
 
         )
         return when(response){
@@ -28,7 +35,7 @@ class EventRepositoryImpl(val dataStoreManager: DataStoreManager,val apiService:
                 if(response.data.code==200) Result.Success(response.data)
                 else Result.Error(response.data.message)
             }
-            is ApiResult.Error-> Result.Error(response.message)
+            is ApiResult.Error-> Result.Error(response.error.message)
 
         }
     }
@@ -55,8 +62,13 @@ class EventRepositoryImpl(val dataStoreManager: DataStoreManager,val apiService:
                 )
             )
              },
-            refreshTokenApi = {apiService.refresh_token(it)},
-            dataStoreManager = dataStoreManager
+            errorBodyParser = {
+                    try {
+                        Gson().fromJson(it, error_model::class.java)
+                    } catch (e: Exception) {
+                        error_model(message = "Unknown error format: $it")
+                    }
+                }
 
         )
         return when(response){
@@ -64,7 +76,7 @@ class EventRepositoryImpl(val dataStoreManager: DataStoreManager,val apiService:
                 if(response.data.code in 200..299) Result.Success(response.data)
                 else Result.Error(response.data.message)
             }
-            is ApiResult.Error-> Result.Error(response.message)
+            is ApiResult.Error-> Result.Error(response.error.message)
 
         }
 
@@ -75,14 +87,19 @@ class EventRepositoryImpl(val dataStoreManager: DataStoreManager,val apiService:
         val response= safeApiCall(
             context=context,
             api = {apiService.get_event(token)},
-            refreshTokenApi = {apiService.refresh_token(it)},
-            dataStoreManager = dataStoreManager)
+            errorBodyParser = {
+                    try {
+                        Gson().fromJson(it, error_model::class.java)
+                    } catch (e: Exception) {
+                        error_model(message = "Unknown error format: $it")
+                    }
+                })
         return when(response) {
             is ApiResult.Success -> {
                 if (response.data.code == 200) Result.Success(response.data)
                 else Result.Error(response.data.message)
             }
-            is ApiResult.Error -> Result.Error(response.message)
+            is ApiResult.Error -> Result.Error(response.error.message)
 
         }
     }
@@ -92,8 +109,13 @@ class EventRepositoryImpl(val dataStoreManager: DataStoreManager,val apiService:
         val response= safeApiCall(
             context=context,
             api = {apiService.get_event(token)},
-            refreshTokenApi = {apiService.refresh_token(it)},
-            dataStoreManager = dataStoreManager)
+            errorBodyParser = {
+                    try {
+                        Gson().fromJson(it, error_model::class.java)
+                    } catch (e: Exception) {
+                        error_model(message = "Unknown error format: $it")
+                    }
+                })
         return when(response) {
             is ApiResult.Success -> {
                 if (response.data.code == 200) {
@@ -106,7 +128,7 @@ class EventRepositoryImpl(val dataStoreManager: DataStoreManager,val apiService:
                 }
                 else Result.Error(response.data.message)
             }
-            is ApiResult.Error -> Result.Error(response.message)
+            is ApiResult.Error -> Result.Error(response.error.message)
 
         }
 

@@ -15,6 +15,7 @@ import com.bumperpick.bumperickUser.API.New_model.OfferHistoryModel
 import com.bumperpick.bumperickUser.API.New_model.banner_model
 import com.bumperpick.bumperickUser.API.New_model.cartDetails
 import com.bumperpick.bumperickUser.API.New_model.deletemodel
+import com.bumperpick.bumperickUser.API.New_model.error_model
 import com.bumperpick.bumperickUser.API.New_model.sub_categories
 import com.bumperpick.bumperickUser.API.New_model.trendingSearchModel
 import com.bumperpick.bumperickUser.Repository.Result.*
@@ -73,13 +74,18 @@ class OfferRepositoryImpl(
 
 
 
-
+        Log.d("PARAMS",params.toString())
         val token = dataStoreManager.getToken.firstOrNull() ?: return Result.Error("Token not found")
         val response = safeApiCall(
             context = context,
             api = { apiService.customer_offer(token,params) },
-            refreshTokenApi = { apiService.refresh_token(it) },
-            dataStoreManager = dataStoreManager
+             errorBodyParser = {
+                    try {
+                        Gson().fromJson(it, error_model::class.java)
+                    } catch (e: Exception) {
+                        error_model(message = "Unknown error format: $it")
+                    }
+                }
         )
 
         return when (response) {
@@ -91,7 +97,7 @@ class OfferRepositoryImpl(
                 else Result.Error(response.data.message?:"")
             }
 
-            is ApiResult.Error -> Result.Error(response.message)
+            is ApiResult.Error -> Result.Error(response.error.message)
         }
     }
 
@@ -101,8 +107,13 @@ class OfferRepositoryImpl(
         val response = safeApiCall(
             context = context,
             api = { apiService.customer_offer(token,params) },
-            refreshTokenApi = { apiService.refresh_token(it) },
-            dataStoreManager = dataStoreManager
+             errorBodyParser = {
+                    try {
+                        Gson().fromJson(it, error_model::class.java)
+                    } catch (e: Exception) {
+                        error_model(message = "Unknown error format: $it")
+                    }
+                }
         )
 
         return when (response) {
@@ -111,7 +122,7 @@ class OfferRepositoryImpl(
                 else Result.Error(response.data.message?:"")
             }
 
-            is ApiResult.Error -> Result.Error(response.message)
+            is ApiResult.Error -> Result.Error(response.error.message)
         }
     }
 
@@ -120,8 +131,13 @@ class OfferRepositoryImpl(
         val response = safeApiCall(
             context = context,
             api = { apiService.getCategory() },
-            refreshTokenApi = { apiService.refresh_token(it) },
-            dataStoreManager = dataStoreManager
+             errorBodyParser = {
+                    try {
+                        Gson().fromJson(it, error_model::class.java)
+                    } catch (e: Exception) {
+                        error_model(message = "Unknown error format: $it")
+                    }
+                }
         )
 
         return when (response) {
@@ -133,7 +149,7 @@ class OfferRepositoryImpl(
                 } else Result.Error(response.data.message)
             }
 
-            is ApiResult.Error -> Result.Error(response.message)
+            is ApiResult.Error -> Result.Error(response.error.message)
         }
     }
 
@@ -142,8 +158,13 @@ class OfferRepositoryImpl(
         val response = safeApiCall(
             context = context,
             api = { apiService.offer_details(id, token) },
-            refreshTokenApi = { apiService.refresh_token(it) },
-            dataStoreManager = dataStoreManager
+             errorBodyParser = {
+                    try {
+                        Gson().fromJson(it, error_model::class.java)
+                    } catch (e: Exception) {
+                        error_model(message = "Unknown error format: $it")
+                    }
+                }
         )
 
         return when (response) {
@@ -152,7 +173,7 @@ class OfferRepositoryImpl(
                 else Result.Error(response.data.message)
             }
 
-            is ApiResult.Error -> Result.Error(response.message)
+            is ApiResult.Error -> Result.Error(response.error.message)
         }
     }
 
@@ -161,8 +182,13 @@ class OfferRepositoryImpl(
         val response = safeApiCall(
             context = context,
             api = { apiService.cart_add(token, id) },
-            refreshTokenApi = { apiService.refresh_token(it) },
-            dataStoreManager = dataStoreManager
+             errorBodyParser = {
+                    try {
+                        Gson().fromJson(it, error_model::class.java)
+                    } catch (e: Exception) {
+                        error_model(message = "Unknown error format: $it")
+                    }
+                }
         )
 
         return when (response) {
@@ -171,7 +197,7 @@ class OfferRepositoryImpl(
                 else Result.Error(response.data.message)
             }
 
-            is ApiResult.Error -> Result.Error(response.message)
+            is ApiResult.Error -> Result.Error(response.error.message)
         }
     }
 
@@ -180,8 +206,13 @@ class OfferRepositoryImpl(
         val response = safeApiCall(
             context = context,
             api = { apiService.cart_data(token) },
-            refreshTokenApi = { apiService.refresh_token(it) },
-            dataStoreManager = dataStoreManager
+             errorBodyParser = {
+                    try {
+                        Gson().fromJson(it, error_model::class.java)
+                    } catch (e: Exception) {
+                        error_model(message = "Unknown error format: $it")
+                    }
+                }
         )
 
         return when (response) {
@@ -190,7 +221,7 @@ class OfferRepositoryImpl(
                 else Result.Error(response.data.message)
             }
 
-            is ApiResult.Error -> Result.Error(response.message)
+            is ApiResult.Error -> Result.Error(response.error.message)
         }
     }
 
@@ -200,8 +231,13 @@ class OfferRepositoryImpl(
         val response = safeApiCall(
             context = context,
             api = { apiService.offer_history(token) },
-            refreshTokenApi = { apiService.refresh_token(it) },
-            dataStoreManager = dataStoreManager
+             errorBodyParser = {
+                    try {
+                        Gson().fromJson(it, error_model::class.java)
+                    } catch (e: Exception) {
+                        error_model(message = "Unknown error format: $it")
+                    }
+                }
         )
 
         return when (response) {
@@ -210,7 +246,7 @@ class OfferRepositoryImpl(
                 else Result.Error(response.data.message)
             }
 
-            is ApiResult.Error -> Result.Error(response.message)
+            is ApiResult.Error -> Result.Error(response.error.message)
         }
     }
 
@@ -222,10 +258,17 @@ class OfferRepositoryImpl(
         map["review"] =review
         map["token"]=token.toString()
 
-        val result= safeApiCall(context=context,api={apiService.review_offer(map)}, refreshTokenApi ={apiService.refresh_token(it)},dataStoreManager=dataStoreManager)
+        val result= safeApiCall(context=context,api={apiService.review_offer(map)},
+            errorBodyParser = {
+                try {
+                    Gson().fromJson(it, error_model::class.java)
+                } catch (e: Exception) {
+                    error_model(message = "Unknown error format: $it")
+                }
+            })
          when(result){
              is ApiResult.Error -> {
-                 return Result.Error(result.message)
+                 return Result.Error(result.error.message)
              }
              is ApiResult.Success -> return Result.Success(result.data)
          }
@@ -240,10 +283,16 @@ class OfferRepositoryImpl(
         map["promotion_id"] =offerId
 
         val result=safeApiCall(context=context,api={apiService.fav_toggle(map)},
-            refreshTokenApi = {apiService.refresh_token(it)},dataStoreManager)
+            errorBodyParser = {
+                try {
+                    Gson().fromJson(it, error_model::class.java)
+                } catch (e: Exception) {
+                    error_model(message = "Unknown error format: $it")
+                }
+            })
         when(result){
             is ApiResult.Error -> {
-                return Result.Error(result.message)
+                return Result.Error(result.error.message)
             }
             is ApiResult.Success -> return Result.Success(result.data)
         }
@@ -252,7 +301,13 @@ class OfferRepositoryImpl(
     override suspend fun fav_offer():  Result<List<DataXXXXXX>> {
         val token=dataStoreManager.getToken.firstOrNull()?:""
         val response=safeApiCall(context=context,api={apiService.getFavioutes(token)},
-            refreshTokenApi = {apiService.refresh_token(it)},dataStoreManager)
+            errorBodyParser = {
+                try {
+                    Gson().fromJson(it, error_model::class.java)
+                } catch (e: Exception) {
+                    error_model(message = "Unknown error format: $it")
+                }
+            })
         return when (response) {
             is ApiResult.Success -> {
                 Log.d("fav_offer",response.data.toString())
@@ -260,17 +315,23 @@ class OfferRepositoryImpl(
                 else Result.Error(response.data.code.toString())
             }
 
-            is ApiResult.Error -> Result.Error(response.message)
+            is ApiResult.Error -> Result.Error(response.error.message)
         }
     }
 
     override suspend fun trendingSearch(): Result<trendingSearchModel> {
         val token=dataStoreManager.getToken.firstOrNull()?:""
         val response=safeApiCall(context=context,api={apiService.trendingSearch(token)},
-            refreshTokenApi = {apiService.refresh_token(it)},dataStoreManager)
+            errorBodyParser = {
+                try {
+                    Gson().fromJson(it, error_model::class.java)
+                } catch (e: Exception) {
+                    error_model(message = "Unknown error format: $it")
+                }
+            })
         when(response){
             is ApiResult.Error -> {
-                return Result.Error(response.message)
+                return Result.Error(response.error.message)
             }
             is ApiResult.Success -> return Result.Success(response.data)
         }
@@ -280,11 +341,17 @@ class OfferRepositoryImpl(
         val token=dataStoreManager.getToken.firstOrNull()?:""
         val response=safeApiCall(context=context, api = {
             apiService.faqs(token) },
-            refreshTokenApi = {apiService.refresh_token(it)},dataStoreManager
+            errorBodyParser = {
+                try {
+                    Gson().fromJson(it, error_model::class.java)
+                } catch (e: Exception) {
+                    error_model(message = "Unknown error format: $it")
+                }
+            }
             )
         return when(response){
             is ApiResult.Error -> {
-                 Result.Error(response.message)
+                 Result.Error(response.error.message)
             }
             is ApiResult.Success ->  Result.Success(response.data)
         }
@@ -301,8 +368,13 @@ class OfferRepositoryImpl(
         val response = safeApiCall(
             context = context,
             api = { apiService.deleteCart(id, token) },
-            refreshTokenApi = { apiService.refresh_token(it) },
-            dataStoreManager = dataStoreManager
+             errorBodyParser = {
+                    try {
+                        Gson().fromJson(it, error_model::class.java)
+                    } catch (e: Exception) {
+                        error_model(message = "Unknown error format: $it")
+                    }
+                }
         )
 
         return when (response) {
@@ -311,7 +383,7 @@ class OfferRepositoryImpl(
                 else Result.Error(response.data.message)
             }
 
-            is ApiResult.Error -> Result.Error(response.message)
+            is ApiResult.Error -> Result.Error(response.error.message)
         }
     }
 
@@ -321,8 +393,13 @@ class OfferRepositoryImpl(
         val response=safeApiCall(
             context = context,
             api = {apiService.notification(token)},
-            refreshTokenApi = { apiService.refresh_token(it) },
-            dataStoreManager = dataStoreManager
+             errorBodyParser = {
+                    try {
+                        Gson().fromJson(it, error_model::class.java)
+                    } catch (e: Exception) {
+                        error_model(message = "Unknown error format: $it")
+                    }
+                }
         )
         return when (response) {
             is ApiResult.Success -> {
@@ -330,7 +407,7 @@ class OfferRepositoryImpl(
                 else Result.Error(response.data.code.toString())
             }
 
-            is ApiResult.Error -> Result.Error(response.message)
+            is ApiResult.Error -> Result.Error(response.error.message)
         }
     }
 
@@ -345,8 +422,13 @@ class OfferRepositoryImpl(
         val response = safeApiCall(
             context = context,
             api = { apiService.bannerAPi() },
-            refreshTokenApi = { apiService.refresh_token(it) },
-            dataStoreManager = dataStoreManager
+             errorBodyParser = {
+                    try {
+                        Gson().fromJson(it, error_model::class.java)
+                    } catch (e: Exception) {
+                        error_model(message = "Unknown error format: $it")
+                    }
+                }
         )
         return when (response) {
             is ApiResult.Success -> {
@@ -354,7 +436,7 @@ class OfferRepositoryImpl(
                 else Error(response.data.code.toString())
             }
 
-            is ApiResult.Error -> Result.Error(response.message)
+            is ApiResult.Error -> Result.Error(response.error.message)
         }
 }
     }

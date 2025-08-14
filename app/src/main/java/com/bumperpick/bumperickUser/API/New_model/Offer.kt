@@ -2,7 +2,7 @@ package com.bumperpick.bumperickUser.API.New_model
 
 data class Offer(
     val approval: String = "",
-    val brand_logo_url: String = "",
+    val brand_logo_url: String? = "",
     val brand_name: String? = null,
     val description: String = "",
     val discount: String = "",

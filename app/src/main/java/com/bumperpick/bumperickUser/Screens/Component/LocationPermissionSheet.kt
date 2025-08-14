@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -12,6 +13,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -52,7 +54,9 @@ fun LocationPermissionScreen(
     onPermissionDenied: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val bottomSheetState = rememberModalBottomSheetState()
+    val bottomSheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
     var showBottomSheet by remember { mutableStateOf(true) }
 
     // Permission launcher for both fine and coarse location
@@ -64,13 +68,25 @@ fun LocationPermissionScreen(
 
         if (fineLocationGranted || coarseLocationGranted) {
             coroutineScope.launch {
-                bottomSheetState.hide()
-                onPermissionGranted()
+                try {
+                    bottomSheetState.hide()
+                } catch (e: Exception) {
+                    // Handle any animation exceptions
+                } finally {
+                    showBottomSheet = false
+                    onPermissionGranted()
+                }
             }
         } else {
             coroutineScope.launch {
-                bottomSheetState.hide()
-                onPermissionDenied()
+                try {
+                    bottomSheetState.hide()
+                } catch (e: Exception) {
+                    // Handle any animation exceptions
+                } finally {
+                    showBottomSheet = false
+                    onPermissionDenied()
+                }
             }
         }
     }
@@ -83,7 +99,8 @@ fun LocationPermissionScreen(
             },
             sheetState = bottomSheetState,
             containerColor = Color.White,
-
+            dragHandle = null, // Remove drag handle to prevent accidental dismissal
+       //     windowInsets = WindowInsets(0) // Remove default insets
         ) {
             Column(
                 modifier = Modifier
@@ -91,8 +108,14 @@ fun LocationPermissionScreen(
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Image(painter = painterResource(R.drawable.image18), contentDescription = null, modifier = Modifier.size(100.dp))
+                Image(
+                    painter = painterResource(R.drawable.image18),
+                    contentDescription = "Location permission icon",
+                    modifier = Modifier.size(100.dp)
+                )
+
                 Spacer(modifier = Modifier.height(16.dp))
+
                 Text(
                     text = "Location Permission Required",
                     fontSize = 20.sp,
@@ -103,33 +126,40 @@ fun LocationPermissionScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Allowing location permission help us recommend the best offers and event near you.",
+                    text = "Allowing location permission help us recommend the best offers and events near you.",
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
+
                 ButtonView(
-                    text = "Allow" ,
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    onClick = { permissionLauncher.launch(
-                        arrayOf(
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION
+                    text = "Allow",
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        permissionLauncher.launch(
+                            arrayOf(
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION
+                            )
                         )
-                    )
-                    })
+                    }
+                )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 TextButton(
                     onClick = {
                         coroutineScope.launch {
-                            bottomSheetState.hide()
-                            showBottomSheet = false
-                            onPermissionDenied()
+                            try {
+                                bottomSheetState.hide()
+                            } catch (e: Exception) {
+                                // Handle any animation exceptions
+                            } finally {
+                                showBottomSheet = false
+                                onPermissionDenied()
+                            }
                         }
                     },
                     modifier = Modifier
@@ -148,4 +178,3 @@ fun LocationPermissionScreen(
         }
     }
 }
-

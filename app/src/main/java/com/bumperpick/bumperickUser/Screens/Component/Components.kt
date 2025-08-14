@@ -1034,8 +1034,14 @@ fun HomeOfferView(offerModel: Offer,
         ){
         Column() {
             Box(modifier = Modifier.fillMaxWidth()){
+                val media_list=
+                    if(offerModel.media.isEmpty()) offerModel.media
+                    else
+                        if(offerModel.brand_logo_url.isNullOrEmpty())
+                        listOf()
+                        else listOf(Media(0,type="image", url=offerModel.brand_logo_url))
 
-                MediaSlider(offerModel.media, height = 180.dp)
+                MediaSlider(media_list, height = 180.dp)
 
                 if(!offerModel.is_ads) {
                     Column(modifier = Modifier.align(Alignment.TopEnd)) {

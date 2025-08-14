@@ -157,7 +157,8 @@ fun OfferSearchScreen(
                         FilterSortScreen(
                             viewmodel = viewModel,
                             onFiltersApplied = { selectedCategories ->
-                                viewModel.updateCategories(selectedCategories.map { it.id })
+                                viewModel.updateFilters(selectedCategories)
+                            //    viewModel.updateCategories(selectedCategories.map { it.id })
                             },
                             onSortSelected = { viewModel.updateSortBy(it.id) }
                         )

@@ -35,6 +35,11 @@ class LoginViewmodel(val authRepository: AuthRepository):ViewModel() {
             )
         }
     }
+    fun error(error:String){
+        _uiState.update { currentState ->
+            currentState.copy(error = error)
+        }
+    }
 
     /**
      * Properly formats a phone number to ensure it follows the +91 format

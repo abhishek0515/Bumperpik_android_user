@@ -35,7 +35,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 val appModule = module {
     single {
         Retrofit.Builder()
-            .baseUrl("http://43.204.219.195/")
+            .baseUrl("http://65.0.78.200/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
@@ -57,7 +57,7 @@ val appModule = module {
     viewModel { GoogleSignInViewModel(get()) }
     viewModel { HomePageViewmodel(get()) }
     viewModel { CategoryViewModel(get()) }
-    viewModel { AccountViewmodel(get(),get()) }
+    viewModel { AccountViewmodel(get(),get(),get()) }
     viewModel { EventScreenViewmodel(get()) }
     viewModel { EventViewmodel(get()) }
     viewModel { FaqViewmodel(get()) }

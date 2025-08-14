@@ -19,6 +19,7 @@ import com.bumperpick.bumperickUser.API.New_model.ticket_add_model
 import com.bumperpick.bumperickUser.API.New_model.ticketmessage
 import com.bumperpick.bumperickUser.API.New_model.trendingSearchModel
 import com.bumperpick.bumperpick_Vendor.API.FinalModel.Notification_model
+import com.bumperpick.bumperpick_Vendor.API.FinalModel.refresh_token_data
 import com.bumperpick.bumperpickvendor.API.Model.Category_Model
 import com.bumperpick.bumperpickvendor.API.Model.Subscription
 import com.bumperpick.bumperpickvendor.API.Model.Vendor_Register_Model
@@ -157,11 +158,11 @@ interface ApiService {
     @GET("api/customer/tickets/{id}")
     suspend fun ticket_detail(@Path("id")id: String, @Query("token")token: String): Response<tickerdetails>
 
-    @POST("api/vendor/device-token/update")
+    @POST("api/customer/device-token/update")
     @FormUrlEncoded
     suspend fun send_token(
         @Field("token")token: String,
-        @Field("vendor_id")vendorId: String,
+        @Field("customer_id")vendorId: String,
         @Field("device_token")device_token: String,): Response<success_model>
 
 
@@ -181,6 +182,8 @@ interface ApiService {
     @POST("api/customer/tickets/{id}/reply")
     @FormUrlEncoded
     suspend fun ticket_reply(@Path("id")id: String,@FieldMap map: Map<String, String>): Response<success_model>
+    @GET("api/customer/refresh-token")
+    suspend fun token_refresh(@Query("token")token: String): Response<refresh_token_data>
 }
 data class EventRegisterRequest(
     val token: String,

@@ -111,7 +111,7 @@ fun StartScreen(gotoLogin:()->Unit){
                     )
                     Spacer(Modifier.height(10.dp))
 
-                    Text( text = "Find the best offers and events around you.\nGrab it,don't miss it!",
+                    Text( text = "Find the best offers and events around you.\nGrab it, don't miss it!",
                         color = Color.Black,
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Normal,

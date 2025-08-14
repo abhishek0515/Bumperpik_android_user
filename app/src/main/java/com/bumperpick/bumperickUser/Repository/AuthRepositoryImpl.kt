@@ -3,6 +3,7 @@ package com.bumperpick.bumperickUser.Repository
 import DataStoreManager
 import android.content.Context
 import android.util.Log
+import com.bumperpick.bumperickUser.API.New_model.error_model
 import com.bumperpick.bumperickUser.API.New_model.profile_model
 import com.bumperpick.bumperpickvendor.API.Model.success_model
 import com.bumperpick.bumperpickvendor.API.Provider.ApiResult
@@ -54,10 +55,15 @@ class AuthRepositoryImpl(
     override suspend fun sendOtp(mobileNumber: String): Result<String> {
         return try {
             val sendOtpResponse = safeApiCall(
-                context = context,
+             
                 api = { apiService.cust_send_otp(mobileNumber.replace(" ", "")) },
-                refreshTokenApi = { token -> apiService.refresh_token(token) },
-                dataStoreManager = dataStoreManager
+                    errorBodyParser = {
+                try {
+                    Gson().fromJson(it, error_model::class.java)
+                } catch (e: Exception) {
+                    error_model(message = "Unknown error format: $it")
+                }
+            }
             )
 
             when (sendOtpResponse) {
@@ -66,7 +72,7 @@ class AuthRepositoryImpl(
                     else Result.Error(sendOtpResponse.data.message)
                 }
 
-                is ApiResult.Error -> Result.Error(sendOtpResponse.message)
+                is ApiResult.Error -> Result.Error(sendOtpResponse.error.message)
             }
 
         } catch (e: Exception) {
@@ -79,8 +85,13 @@ class AuthRepositoryImpl(
             val sendOtpResponse = safeApiCall(
                 context = context,
                 api = { apiService.cust_re_send_otp(mobileNumber.replace(" ", "")) },
-                refreshTokenApi = { token -> apiService.refresh_token(token) },
-                dataStoreManager = dataStoreManager
+                errorBodyParser = {
+                    try {
+                        Gson().fromJson(it, error_model::class.java)
+                    } catch (e: Exception) {
+                        error_model(message = "Unknown error format: $it")
+                    }
+                }
             )
 
             when (sendOtpResponse) {
@@ -89,7 +100,7 @@ class AuthRepositoryImpl(
                     else Result.Error(sendOtpResponse.data.message)
                 }
 
-                is ApiResult.Error -> Result.Error(sendOtpResponse.message)
+                is ApiResult.Error -> Result.Error(sendOtpResponse.error.message)
             }
 
         } catch (e: Exception) {
@@ -102,8 +113,13 @@ class AuthRepositoryImpl(
             val verifyOtpResponse = safeApiCall(
                 context = context,
                 api = { apiService.cust_verify_otp(mobileNumber.replace(" ", ""), otp) },
-                refreshTokenApi = { token -> apiService.refresh_token(token) },
-                dataStoreManager = dataStoreManager
+                    errorBodyParser = {
+                try {
+                    Gson().fromJson(it, error_model::class.java)
+                } catch (e: Exception) {
+                    error_model(message = "Unknown error format: $it")
+                }
+            }
             )
 
             when (verifyOtpResponse) {
@@ -128,13 +144,18 @@ class AuthRepositoryImpl(
                                                 device_token = task.result
                                             )
                                         },
-                                        refreshTokenApi = { token -> apiService.refresh_token(token) },
-                                        dataStoreManager = dataStoreManager
+                                        errorBodyParser = {
+                                            try {
+                                                Gson().fromJson(it, error_model::class.java)
+                                            } catch (e: Exception) {
+                                                error_model(message = "Unknown error format: $it")
+                                            }
+                                        }
                                     )
 
                                     when (send_fcm_token) {
                                         is ApiResult.Error -> {
-                                            Log.d("Error_Fcm_token", send_fcm_token.message)
+                                            Log.d("Error_Fcm_token", send_fcm_token.error.message)
                                         }
 
                                         is ApiResult.Success -> {
@@ -148,7 +169,7 @@ class AuthRepositoryImpl(
                     } else Result.Error(verifyOtpResponse.data.message)
                 }
 
-                is ApiResult.Error -> Result.Error(verifyOtpResponse.message)
+                is ApiResult.Error -> Result.Error(verifyOtpResponse.error.message)
             }
         } catch (e: Exception) {
             Result.Error("OTP verification failed", e)
@@ -163,8 +184,13 @@ class AuthRepositoryImpl(
                     val token = dataStoreManager.getToken.firstOrNull()
                     apiService.getProfile(token = token ?: "")
                 },
-                refreshTokenApi = { token -> apiService.refresh_token(token) },
-                dataStoreManager = dataStoreManager
+                    errorBodyParser = {
+                try {
+                    Gson().fromJson(it, error_model::class.java)
+                } catch (e: Exception) {
+                    error_model(message = "Unknown error format: $it")
+                }
+            }
             )
 
             when (getProfileResponse) {
@@ -174,7 +200,7 @@ class AuthRepositoryImpl(
                     } else Result.Error(getProfileResponse.data.message)
                 }
 
-                is ApiResult.Error -> Result.Error(getProfileResponse.message)
+                is ApiResult.Error -> Result.Error(getProfileResponse.error.message)
             }
         } catch (e: Exception) {
             Result.Error("Get profile failed", e)
@@ -194,8 +220,13 @@ class AuthRepositoryImpl(
                     )
 
                 },
-                refreshTokenApi = { token -> apiService.refresh_token(token) },
-                dataStoreManager = dataStoreManager
+                    errorBodyParser = {
+                try {
+                    Gson().fromJson(it, error_model::class.java)
+                } catch (e: Exception) {
+                    error_model(message = "Unknown error format: $it")
+                }
+            }
             )
             when (sendLocatrion) {
                 is ApiResult.Success -> {
@@ -204,7 +235,7 @@ class AuthRepositoryImpl(
                     } else Result.Error(sendLocatrion.data.message)
                 }
 
-                is ApiResult.Error -> Result.Error(sendLocatrion.message)
+                is ApiResult.Error -> Result.Error(sendLocatrion.error.message)
             }
 
         }
@@ -235,8 +266,13 @@ class AuthRepositoryImpl(
                         image = image?.toMultipartPart()
                     )
                 },
-                refreshTokenApi = { token -> apiService.refresh_token(token) },
-                dataStoreManager = dataStoreManager
+                    errorBodyParser = {
+                try {
+                    Gson().fromJson(it, error_model::class.java)
+                } catch (e: Exception) {
+                    error_model(message = "Unknown error format: $it")
+                }
+            }
             )
 
             when (updateResponse) {
@@ -246,7 +282,7 @@ class AuthRepositoryImpl(
                     } else Result.Error(updateResponse.data.message)
                 }
 
-                is ApiResult.Error -> Result.Error(updateResponse.message)
+                is ApiResult.Error -> Result.Error(updateResponse.error.message)
             }
         } catch (e: Exception) {
             Result.Error("Update profile failed", e)

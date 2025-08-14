@@ -4,6 +4,7 @@ import DataStoreManager
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import com.bumperpick.bumperickUser.API.New_model.error_model
 import com.bumperpick.bumperpickvendor.API.Provider.ApiResult
 import com.bumperpick.bumperpickvendor.API.Provider.ApiService
 import com.bumperpick.bumperpickvendor.API.Provider.safeApiCall
@@ -15,6 +16,7 @@ import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,12 +26,13 @@ class GoogleSignInRepository(
     private val apiService: ApiService,
     private val dataStoreManager: DataStoreManager
 ) {
+    private val serverClientId = "6617870675-5e2as1tc3op02p9ctcrl2cd9fcl8b8cv.apps.googleusercontent.com"
     private val firebaseAuth = FirebaseAuth.getInstance()
 
     private val _signInState = MutableStateFlow<GoogleSignInState>(GoogleSignInState.Idle)
     val signInState: StateFlow<GoogleSignInState> = _signInState.asStateFlow()
 
-    private fun getGoogleSignInClient(serverClientId: String): GoogleSignInClient {
+    private fun getGoogleSignInClient(): GoogleSignInClient {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(serverClientId)
             .requestEmail()
@@ -38,8 +41,8 @@ class GoogleSignInRepository(
         return GoogleSignIn.getClient(context, gso)
     }
 
-    fun getSignInIntent(serverClientId: String): Intent {
-        return getGoogleSignInClient(serverClientId).signInIntent
+    fun getSignInIntent(): Intent {
+        return getGoogleSignInClient().signInIntent
     }
 
     suspend fun processSignInResult(data: Intent?): kotlin.Result<GoogleUserData> {
@@ -75,15 +78,20 @@ class GoogleSignInRepository(
             val result = safeApiCall(
                 context = context,
                 api = { apiService.auth_google(firebaseUser.email!!) },
-                refreshTokenApi = { token -> apiService.refresh_token(token) },
-                dataStoreManager = dataStoreManager
+                    errorBodyParser = {
+                try {
+                    Gson().fromJson(it, error_model::class.java)
+                } catch (e: Exception) {
+                    error_model(message = "Unknown error format: $it")
+                }
+            }
             )
 
             when (result) {
                 is ApiResult.Error -> {
-                    Log.e("GoogleSignIn", "Sign-in failed: ${result.message}")
-                    _signInState.value = GoogleSignInState.Error("Sign-in failed: ${result.message}")
-                    return kotlin.Result.failure(Exception(result.message))
+                    Log.e("GoogleSignIn", "Sign-in failed: ${result.error}")
+                    _signInState.value = GoogleSignInState.Error("Sign-in failed: ${result.error}")
+                    return kotlin.Result.failure(Exception(result.error.message))
                 }
 
                 is ApiResult.Success -> {
@@ -108,11 +116,11 @@ class GoogleSignInRepository(
     }
 
     // Silent Sign-In (auto sign-in)
-    suspend fun silentSignIn(serverClientId: String): kotlin.Result<GoogleUserData> {
+    suspend fun silentSignIn(): kotlin.Result<GoogleUserData> {
         return try {
             _signInState.value = GoogleSignInState.Loading
 
-            val googleSignInClient = getGoogleSignInClient(serverClientId)
+            val googleSignInClient = getGoogleSignInClient()
             val task = googleSignInClient.silentSignIn()
             val account = task.await()
 
@@ -138,15 +146,20 @@ class GoogleSignInRepository(
             val result = safeApiCall(
                 context = context,
                 api = { apiService.auth_google(firebaseUser.email!!) },
-                refreshTokenApi = { token -> apiService.refresh_token(token) },
-                dataStoreManager = dataStoreManager
+                    errorBodyParser = {
+                try {
+                    Gson().fromJson(it, error_model::class.java)
+                } catch (e: Exception) {
+                    error_model(message = "Unknown error format: $it")
+                }
+            }
             )
 
             when (result) {
                 is ApiResult.Error -> {
-                    Log.e("GoogleSignIn", "Silent sign-in failed: ${result.message}")
-                    _signInState.value = GoogleSignInState.Error("Sign-in failed: ${result.message}")
-                    return kotlin.Result.failure(Exception(result.message))
+                    Log.e("GoogleSignIn", "Silent sign-in failed: ${result.error}")
+                    _signInState.value = GoogleSignInState.Error("Sign-in failed: ${result.error}")
+                    return kotlin.Result.failure(Exception(result.error.message))
                 }
 
                 is ApiResult.Success -> {
@@ -166,7 +179,7 @@ class GoogleSignInRepository(
         }
     }
 
-    suspend fun signOut(serverClientId: String) {
+    suspend fun signOut() {
         try {
             Log.d("GoogleSignIn", "Signing out")
 
@@ -174,7 +187,7 @@ class GoogleSignInRepository(
             firebaseAuth.signOut()
 
             // Sign out from Google Sign-In
-            getGoogleSignInClient(serverClientId).signOut().await()
+            getGoogleSignInClient().signOut().await()
 
             // Clear stored data
       //      dataStoreManager.clearUserData()
@@ -186,12 +199,12 @@ class GoogleSignInRepository(
         }
     }
 
-    suspend fun revokeAccess(serverClientId: String) {
+    suspend fun revokeAccess() {
         try {
             Log.d("GoogleSignIn", "Revoking access")
 
             // Revoke access from Google Sign-In
-            getGoogleSignInClient(serverClientId).revokeAccess().await()
+            getGoogleSignInClient().revokeAccess().await()
 
             // Sign out from Firebase
             firebaseAuth.signOut()

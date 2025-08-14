@@ -57,44 +57,67 @@ import com.bumperpick.bumperickUser.Screens.Component.LocationCard
 import com.bumperpick.bumperickUser.Screens.Component.LocationPermissionScreen
 import com.bumperpick.bumperickUser.Screens.Component.NavigationItem
 import org.koin.androidx.compose.koinViewModel
-
+enum class PermissionState {
+    CHECKING,
+    GRANTED,
+    NOT_GRANTED,
+    DENIED
+}
 
 @Composable
-fun Homepage(onHomeClick: (HomeClick)->Unit,
-             open_subID:(sub_cat_id:String,sub_cat_name:String,cat_id:String)->Unit,
-             onAccountClick:(AccountClick)->Unit,
-             onEventClick:()->Unit,
-             onCampaignClick: () -> Unit
-             ){
-
-    HomeScreen(
-        viewmodel = koinViewModel (),
-        onHomeClick,
-        onEventClick,onCampaignClick,onAccountClick,open_subID)
-
+fun Homepage(
+    onHomeClick: (HomeClick) -> Unit,
+    open_subID: (sub_cat_id: String, sub_cat_name: String, cat_id: String) -> Unit,
+    onAccountClick: (AccountClick) -> Unit,
+    onEventClick: () -> Unit,
+    onCampaignClick: () -> Unit
+) {
     val context = LocalContext.current
-    val locationPermission = ContextCompat.checkSelfPermission(
-        context,
-        Manifest.permission.ACCESS_FINE_LOCATION
-    )
+    var permissionState by remember { mutableStateOf(PermissionState.CHECKING) }
+    var showPermissionScreen by remember { mutableStateOf(false) }
 
+    // Check permission status on composition
+    LaunchedEffect(Unit) {
+        val locationPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        )
 
-
-if (locationPermission != PackageManager.PERMISSION_GRANTED) {
-    LocationPermissionScreen(
-        onPermissionGranted = {
-            // Handle permission granted
-            println("Location permission granted")
-        },
-        onPermissionDenied = {
-            // Handle permission denied
-            println("Location permission denied")
+        permissionState = if (locationPermission == PackageManager.PERMISSION_GRANTED) {
+            PermissionState.GRANTED
+        } else {
+            PermissionState.NOT_GRANTED
         }
+
+        showPermissionScreen = permissionState == PermissionState.NOT_GRANTED
+    }
+
+    // Show home screen
+    HomeScreen(
+        viewmodel = koinViewModel(),
+        onHomeClick,
+        onEventClick,
+        onCampaignClick,
+        onAccountClick,
+        open_subID
     )
-}
 
+    // Show permission screen only when needed
+    if (showPermissionScreen && permissionState == PermissionState.NOT_GRANTED) {
+        LocationPermissionScreen(
+            onPermissionGranted = {
+                permissionState = PermissionState.GRANTED
+                showPermissionScreen = false
+                println("Location permission granted")
+            },
+            onPermissionDenied = {
+                permissionState = PermissionState.DENIED
+                showPermissionScreen = false
+                println("Location permission denied")
+            }
+        )
+    }
 }
-
 class homeScreenViewmodel(): ViewModel(){
     var selectedTab by mutableStateOf(0)
     fun onTabSelected(index:Int){

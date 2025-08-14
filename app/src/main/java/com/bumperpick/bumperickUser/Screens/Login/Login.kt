@@ -1,5 +1,7 @@
 package com.bumperpick.bumperickUser.Screens.Login
 
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.*
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -28,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -65,7 +69,7 @@ fun Login(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val google_uiState by googleSignInViewModel.uiState.collectAsState()
-
+    val context = LocalContext.current
     // Launcher for Google Sign-In intent
     val signInLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         googleSignInViewModel.processSignInResult(result.data)
@@ -200,12 +204,42 @@ fun Login(
                     )
                 )
 
-                Text(
-                    text = "I accept the Terms and conditions & Privacy policy",
-                    fontSize = 14.sp,
-                    color = Color.Black,
-                    modifier = Modifier.padding(start = 4.dp)
+                val annotatedText = buildAnnotatedString {
+                    append("I accept the ")
+
+                    pushStringAnnotation(tag = "terms", annotation = "https://triosys.in/terms.html")
+                    withStyle(style = SpanStyle(color = BtnColor, textDecoration = TextDecoration.Underline)) {
+                        append("Terms and Conditions")
+                    }
+                    pop()
+
+                    append(" & ")
+
+                    pushStringAnnotation(tag = "privacy", annotation = "https://triosys.in/privacy.html")
+                    withStyle(style = SpanStyle(color = BtnColor, textDecoration = TextDecoration.Underline)) {
+                        append("Privacy Policy")
+                    }
+                    pop()
+                }
+
+                ClickableText(
+                    text = annotatedText,
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    onClick = { offset ->
+                        annotatedText.getStringAnnotations(tag = "terms", start = offset, end = offset)
+                            .firstOrNull()?.let {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it.item))
+                                context.startActivity(intent)
+                            }
+
+                        annotatedText.getStringAnnotations(tag = "privacy", start = offset, end = offset)
+                            .firstOrNull()?.let {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it.item))
+                                context.startActivity(intent)
+                            }
+                    }
                 )
+
             }
             Spacer(modifier=Modifier.height(10.dp))
             // Loading indicator or Button - connected to state
@@ -231,8 +265,13 @@ fun Login(
 
             // Google Sign-In button
             Google_SigInButton(modifier = Modifier.padding(horizontal = 20.dp)) {
-                val signInIntent = googleSignInViewModel.getSignInIntent()
-                signInLauncher.launch(signInIntent)
+                if(viewModel.uiState.value.termsAccepted) {
+                    val signInIntent = googleSignInViewModel.getSignInIntent()
+                    signInLauncher.launch(signInIntent)
+                }
+                else{
+                    viewModel.error("Please accept terms and conditions")
+                }
             }
 
             Spacer(modifier = Modifier.weight(1f))

@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
+import com.bumperpick.bumperickUser.API.New_model.error_model
 import com.bumperpick.bumperickUser.API.New_model.refreshtoken
 import com.bumperpick.bumperpickvendor.API.Model.success_model
 import com.google.gson.Gson
@@ -14,71 +15,88 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.koin.java.KoinJavaComponent.getKoin
 import retrofit2.Response
 import java.io.File
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.jvm.java
 
-sealed class ApiResult<out T> {
-    data class Success<out T>(val data: T) : ApiResult<T>()
-    data class Error(val message: String, val code: Int? = null) : ApiResult<Nothing>()
+sealed class ApiResult<out T, out E> {
+    data class Success<out T>(val data: T) : ApiResult<T, Nothing>()
+    data class Error<out E>(val error: E, val code: Int? = null) : ApiResult<Nothing, E>()
 }
 
-suspend fun <T> safeApiCall(
-    context: Context,
+suspend fun <T, E> safeApiCall(
+    context: Context? = getKoin().get(),
     api: suspend () -> Response<T>,
-    refreshTokenApi: suspend (String) -> Response<refreshtoken>,
-    dataStoreManager: DataStoreManager
-): ApiResult<T> {
+    errorBodyParser: (String) -> E
+): ApiResult<T, E> {
     return try {
         val response = api()
-        Log.d("RESPONSE", response.toString())
+        Log.d("RESPONSE", response.body().toString())
 
         if (response.isSuccessful) {
             response.body()?.let { ApiResult.Success(it) }
-                ?: ApiResult.Error("Empty body", response.code())
+                ?: ApiResult.Error(errorBodyParser("Empty body"), response.code())
         } else {
-            // Check for unauthenticated
-           /* if (response.code() == 401 || response.message().contains("Unauthenticated", true)) {
-                // Get current token
-                val currentToken = dataStoreManager.getToken.firstOrNull()
-                if (currentToken != null) {
-                    val refreshResponse = refreshTokenApi(currentToken)
+            val errorBodyStr = response.errorBody()?.string().orEmpty()
+            val parsedError = errorBodyParser(errorBodyStr)
 
-                    if (refreshResponse.isSuccessful) {
-                        val newToken = refreshResponse.body()?.meta?.token
-                        val userId = refreshResponse.body()?.data?.customer_id.toString() // adjust if needed
-
-                        if (!newToken.isNullOrEmpty()) {
-                            // Save new token
-                            dataStoreManager.saveUserId(newToken, userId)
-
-                            // Retry original API with new token
-                            val retryResponse = api()
-                            return if (retryResponse.isSuccessful) {
-                                retryResponse.body()?.let { ApiResult.Success(it) }
-                                    ?: ApiResult.Error("Empty body after retry", retryResponse.code())
-                            } else {
-                                ApiResult.Error("Retry failed: ${retryResponse.message()}", retryResponse.code())
-                            }
-                        }
+            if (errorBodyStr.contains("Unauthenticated", true) || response.code() == 401) {
+                val tokenRefreshed = refreshTokenDirectly(context)
+                if (tokenRefreshed) {
+                    val retryResponse = api()
+                    return if (retryResponse.isSuccessful) {
+                        retryResponse.body()?.let { ApiResult.Success(it) }
+                            ?: ApiResult.Error(errorBodyParser("Empty body on retry"), retryResponse.code())
+                    } else {
+                        val retryErrorStr = retryResponse.errorBody()?.string().orEmpty()
+                        ApiResult.Error(errorBodyParser(retryErrorStr), retryResponse.code())
                     }
-                    return ApiResult.Error("Token refresh failed: ${refreshResponse.message()}", refreshResponse.code())
                 } else {
-                    return ApiResult.Error("No token found for refresh")
+                    ApiResult.Error(parsedError, response.code())
                 }
             } else {
-           */     val errorBody = response.errorBody()?.string()
-                val gson = Gson()
-                val errorResponse = gson.fromJson(errorBody, success_model::class.java)
-
-                Log.d("Error",errorResponse.message?:"")
-                ApiResult.Error("Error: ${errorResponse.message}", response.code())
-          //  }
+                ApiResult.Error(parsedError, response.code())
+            }
         }
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Exception) {
-        ApiResult.Error("Exception: ${e.localizedMessage ?: "Unknown error"}")
+        ApiResult.Error(errorBodyParser(e.localizedMessage ?: "Unknown error"))
     }
 }
 
+
+
+
+
+suspend fun refreshTokenDirectly(context: Context?): Boolean {
+    if (context == null) return false
+
+    val dataStoreManager = DataStoreManager(context)
+    val apiService: ApiService = getKoin().get()
+
+    return try {
+        val previousToken = dataStoreManager.getToken.firstOrNull()?:""
+        val call = apiService.token_refresh(previousToken)
+
+        if (call.isSuccessful) {
+            call.body()?.meta?.let { newMeta ->
+                dataStoreManager.saveUserId(token = newMeta.token,call.body()?.data?.customer_id.toString())
+                Log.d("Token", "Token refreshed and saved.")
+                return true
+            }
+        } else {
+            val errorBody = call.errorBody()?.string().orEmpty()
+            Log.d("RefreshTokenError", errorBody)
+        }
+        false
+    } catch (e: Exception) {
+        Log.e("Exception", "Token refresh failed: ${e.localizedMessage}")
+        false
+    }
+}
 fun File.toMultipartPart(
     partName: String = "file",
     contentType: String = "application/octet-stream"

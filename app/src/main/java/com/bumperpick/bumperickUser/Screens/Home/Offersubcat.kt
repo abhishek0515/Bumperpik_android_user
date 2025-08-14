@@ -60,9 +60,8 @@ fun offer_subcat( subcatId:String,subcatName:String,cat_id:String, onBackClick:(
     val context= LocalContext.current
     val offerDetails = viewmodel.offer_uiState.collectAsState().value
     LaunchedEffect(Unit) {
-        viewmodel.updateCategories(listOf(cat_id))
-        viewmodel.updateSubcatid(subcatId)
-        viewmodel.getOffers()
+        viewmodel.updateCategories_and_sub_cat(listOf(cat_id),subcatId)
+
     }
 
     Column(

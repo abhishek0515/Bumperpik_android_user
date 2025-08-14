@@ -1,5 +1,6 @@
 package com.bumperpick.bumperickUser.Screens.Home
 
+import FilterOption
 import android.util.Log
 import android.view.View
 import androidx.compose.runtime.MutableState
@@ -200,32 +201,65 @@ class HomePageViewmodel(val offerRepository: OfferRepository):ViewModel() {
         distanceFilter: String? = null,
         search: String? = null
     ) {
-        val currentFilter = _currentOfferFilter.value
-        val newFilter = currentFilter.copy(
-            subcatId = subcatId ?: currentFilter.subcatId,
-            categoriesId = categoriesId ?: currentFilter.categoriesId,
-            sortBy = sortBy ?: currentFilter.sortBy,
-            distanceFilter = distanceFilter ?: currentFilter.distanceFilter,
-            search = search ?: currentFilter.search
-        )
-        _currentOfferFilter.value = newFilter
+        var currentFilter = _currentOfferFilter.value
+        Log.d("Filters", "${categoriesId} || ${distanceFilter}")
+
+        subcatId?.let {
+            currentFilter = currentFilter.copy(subcatId = it)
+        }
+        categoriesId?.let {
+            currentFilter = currentFilter.copy(categoriesId = it)
+        }
+        sortBy?.let {
+            currentFilter = currentFilter.copy(sortBy = it)
+        }
+        if(distanceFilter ==null){
+            currentFilter = currentFilter.copy(distanceFilter = "")
+        }
+        else{
+            currentFilter = currentFilter.copy(distanceFilter = distanceFilter)
+        }
+
+        search?.let {
+            currentFilter = currentFilter.copy(search = it)
+        }
+
+        _currentOfferFilter.value = currentFilter
+        Log.d("filter", currentFilter.toString())
+
         getOffers(
-            removeads = newFilter.search.isNotEmpty()
+            removeads = currentFilter.search.isNotEmpty()
         ) // Reload offers with the updated filter
     }
 
     // Convenience functions for UI components to update specific filters
-    fun updateCategories(newCategories: List<String>) {
-        updateFilterAndLoadOffers(categoriesId = newCategories)
+    fun updateCategories_and_sub_cat(newCategories: List<String>,subcatId:String) {
+        Log.d("updateCategories",newCategories.toString())
+        updateFilterAndLoadOffers(categoriesId = newCategories, subcatId = subcatId)
     }
 
     fun updateSortBy(newSortBy: String) {
         updateFilterAndLoadOffers(sortBy = newSortBy)
     }
 
-    fun updateDistanceFilter(newDistanceFilter: String) {
-        updateFilterAndLoadOffers(distanceFilter = newDistanceFilter)
+    fun updateFilters(it:List<FilterOption>) {
+        val cat_list = it
+            .filter { it.type==Type.Category }
+            .map { it.id }
+        Log.d("cat_list",cat_list.size.toString())
+
+        val distlist = it
+            .filter { it.type==Type.Distance }
+            .map { it.id }
+        Log.d("distlist",distlist.size.toString())
+
+        updateFilterAndLoadOffers(categoriesId = cat_list,distanceFilter =
+            if(distlist.isNotEmpty()) {
+                distlist.get(0)
+            } else null
+        )
     }
+
 
     fun updateSearch(newSearch: String) {
         updateFilterAndLoadOffers(search = newSearch)
@@ -337,6 +371,7 @@ class HomePageViewmodel(val offerRepository: OfferRepository):ViewModel() {
                 is Result.Success -> {
 
                     _rating_uiState.value = UiState.Success(result.data)
+                    getOfferDetails(offerId)
                 }
             }
         }

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bumperpick.bumperickUser.API.New_model.profile_model
 import com.bumperpick.bumperickUser.Repository.AuthRepository
+import com.bumperpick.bumperickUser.Repository.GoogleSignInRepository
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +16,8 @@ import java.io.File
 
 class AccountViewmodel(
     private val dataStoreManager: DataStoreManager,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val googleSignInRepository: GoogleSignInRepository
 ) : ViewModel()
 {
 
@@ -31,6 +33,7 @@ class AccountViewmodel(
     fun logout() {
         viewModelScope.launch(Dispatchers.IO) {
             dataStoreManager.clearToken()
+            googleSignInRepository.signOut()
             _isLogout.value = true
         }
     }

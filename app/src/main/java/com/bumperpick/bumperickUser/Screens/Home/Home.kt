@@ -282,17 +282,11 @@ fun Home(
             FilterSortScreen(
                 viewmodel = viewModel,
                 onFiltersApplied = {
-                    val cat_list = it
-                        .filter { it.type==Type.Category }
-                        .map { it.id }
-                    Log.d("cat_list",cat_list.size.toString())
-                    viewModel.updateCategories(cat_list)
-                    val distlist = it
-                        .filter { it.type==Type.Category }
-                        .map { it.id }
-                    if(distlist.isNotEmpty()) {
-                        viewModel.updateDistanceFilter(distlist.get(0))
-                    }
+                    viewModel.updateFilters(it)
+
+
+
+
                 },
                 onSortSelected = { val id=it.id
                     viewModel.updateSortBy(id)

@@ -3,6 +3,7 @@ package com.bumperpick.bumperickUser.Misc
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -38,10 +39,13 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             )
             notificationManager.createNotificationChannel(channel)
         }
+        val largeIcon = BitmapFactory.decodeResource(resources, R.drawable.logo)
 
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.logo) // Add icon
+            .setLargeIcon(largeIcon)
             .setContentTitle(title)
+
             .setContentText(message)
             .setAutoCancel(true)
 
